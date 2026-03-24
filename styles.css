@@ -13,7 +13,7 @@ a{color:var(--primary-2);text-decoration:none}img{max-width:100%;display:block}
 .brand{display:flex;gap:.75rem;align-items:center;color:var(--text);font-weight:800}.brand img{width:48px;height:48px;object-fit:cover;border-radius:10px}
 .menu{display:flex;gap:.3rem;align-items:center}.menu a{padding:.55rem .8rem;border-radius:10px;color:#1e293b;font-weight:600}.menu a:hover,.menu a.active{background:#e8f1ff;color:var(--primary)}
 .menu-toggle{display:none;background:var(--surface-2);border:1px solid var(--line);padding:.5rem .65rem;border-radius:10px}
-.hero{background:linear-gradient(110deg,rgba(11,74,143,.95),rgba(19,103,200,.88)),url('assets/hero-musprov.jpg') center/cover no-repeat;color:#fff;border-radius:24px;padding:2.2rem;box-shadow:var(--shadow)}
+.hero{background:linear-gradient(110deg,rgba(11,74,143,.78),rgba(19,103,200,.65)),url('assets/hero-musprov.jpg') center/cover no-repeat;color:#fff;border-radius:24px;padding:2.2rem;box-shadow:var(--shadow)}
 .hero h1{font-size:clamp(1.55rem,3.2vw,2.7rem);margin:.2rem 0}.hero p{max-width:740px;color:#e5efff}
 .pills{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}.pill{background:rgba(255,255,255,.17);padding:.5rem .75rem;border-radius:999px;font-weight:600;font-size:.84rem}
 .section{margin:2rem 0}.section h2{font-size:1.35rem;margin:0 0 1rem 0}
