@@ -1,15 +1,16 @@
-<!doctype html><html lang='id'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Dashboard Admin PSTI</title><link rel='stylesheet' href='styles.css'><script src='data-layer.js'></script><script defer src='admin.js'></script></head><body><div class='topbar'><div class='container'><span>Dashboard Admin PSTI Jatim</span><span>Pengguna: <b id='who'>-</b></span></div></div>
+<!doctype html><html lang='id'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Dashboard Admin PSTI</title><link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css' crossorigin='anonymous' referrerpolicy='no-referrer'><link rel='stylesheet' href='styles.css'><script src='data-layer.js'></script><script defer src='admin.js'></script></head><body><div class='topbar'><div class='container'><span>Dashboard Admin PSTI Jatim</span><span>Pengguna: <b id='who'>-</b></span></div></div>
 <main class='container section'>
   <div style='display:flex;justify-content:space-between;align-items:center;gap:1rem'><h1>Manajemen Konten</h1><div><a class='btn secondary' href='index.html'>Lihat Website</a> <button class='btn danger' id='logout'>Logout</button></div></div>
   <div id='flash' class='alert'></div>
   <div class='admin-layout'>
     <aside class='side'>
-      <button class='active' data-tab='berita'>Berita</button><button data-tab='agenda'>Agenda</button><button data-tab='klasemen'>Klasemen</button><button data-tab='sponsor'>Sponsor</button>
+      <button class='active' data-tab='berita'>Berita</button><button data-tab='agenda'>Agenda</button><button data-tab='kompetisi'>Kompetisi</button><button data-tab='klasemen'>Klasemen</button><button data-tab='sponsor'>Sponsor</button>
       <hr><button data-tab='pengurus'>Pengurus</button><button data-tab='atlit'>Atlet</button><button data-tab='pelatih'>Pelatih</button><button data-tab='klub'>Klub</button>
     </aside>
     <section>
       <div id='p-berita' class='panel active card'><div style='display:flex;justify-content:space-between'><h3>Kelola Berita</h3><button class='btn addBtn' data-mod='berita'>Tambah</button></div><div id='table-berita'></div></div>
-      <div id='p-agenda' class='panel card'><h3>Kelola Agenda</h3><div id='table-agenda'></div></div>
+      <div id='p-agenda' class='panel card'><div style='display:flex;justify-content:space-between'><h3>Kelola Agenda</h3><button class='btn addBtn' data-mod='agenda'>Tambah</button></div><div id='table-agenda'></div></div>
+      <div id='p-kompetisi' class='panel card'><div style='display:flex;justify-content:space-between'><h3>Kelola Kompetisi</h3><button class='btn addBtn' data-mod='kompetisi'>Tambah</button></div><div id='table-kompetisi'></div></div>
       <div id='p-klasemen' class='panel card'><h3>Kelola Klasemen</h3><div id='table-klasemen'></div></div>
       <div id='p-sponsor' class='panel card'><h3>Kelola Sponsor</h3><div id='table-sponsor'></div></div>
       <div id='p-pengurus' class='panel card'><div style='display:flex;justify-content:space-between'><h3>Kelola Pengurus</h3><button class='btn addBtn' data-mod='pengurus'>Tambah</button></div><div id='table-pengurus'></div></div>

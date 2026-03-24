@@ -5,7 +5,8 @@
 
   const modules = {
     berita: { file: 'data/berita.json', id: 'id' },
-    agenda: { file: 'data/agenda.json' },
+    agenda: { file: 'data/agenda.json', id: 'id' },
+    kompetisi: { file: 'data/kompetisi.json', id: 'id' },
     klasemen: { file: 'data/klasemen.json' },
     sponsor: { file: 'data/sponsor.json' },
     atlit: { file: 'data/atlit.json', id: 'id' },
@@ -54,19 +55,51 @@
     }
   }
 
+  function uid(prefix = '') {
+    return (prefix + Math.random().toString(16).slice(2, 10)).toUpperCase();
+  }
+
+  function normalizeModule(moduleName, items) {
+    const out = Array.isArray(items) ? [...items] : [];
+    if (!modules[moduleName]) return out;
+
+    if (modules[moduleName].id) {
+      out.forEach((it) => {
+        if (!it.id) it.id = uid('ID');
+      });
+    }
+
+    if (moduleName === 'agenda' || moduleName === 'kompetisi') {
+      out.forEach((it) => {
+        it.nama_kegiatan = it.nama_kegiatan || it.kegiatan || '';
+        it.kegiatan = it.kegiatan || it.nama_kegiatan || '';
+        it.status = it.status || 'Terjadwal';
+        it.kategori = it.kategori || moduleName;
+      });
+    }
+
+    return out;
+  }
+
   async function dbGet(moduleName) {
     const key = DB_PREFIX + moduleName;
     const fromLs = localStorage.getItem(key);
     if (fromLs) {
-      try { return JSON.parse(fromLs); } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(fromLs);
+        const norm = normalizeModule(moduleName, parsed);
+        localStorage.setItem(key, JSON.stringify(norm));
+        return norm;
+      } catch { /* ignore */ }
     }
     const base = await seed(modules[moduleName].file);
-    localStorage.setItem(key, JSON.stringify(base));
-    return JSON.parse(JSON.stringify(base));
+    const norm = normalizeModule(moduleName, base);
+    localStorage.setItem(key, JSON.stringify(norm));
+    return JSON.parse(JSON.stringify(norm));
   }
 
   function dbSet(moduleName, items) {
-    localStorage.setItem(DB_PREFIX + moduleName, JSON.stringify(items));
+    localStorage.setItem(DB_PREFIX + moduleName, JSON.stringify(normalizeModule(moduleName, items)));
   }
 
   function isAdmin() {
@@ -76,10 +109,6 @@
   function parseQuery(url) {
     const u = new URL(url, location.origin);
     return { pathname: u.pathname.split('/').pop() || '', q: u.searchParams };
-  }
-
-  function uid(prefix = '') {
-    return (prefix + Math.random().toString(16).slice(2, 10)).toUpperCase();
   }
 
   async function fileToDataUrl(file) {
@@ -172,9 +201,9 @@
       let out = Array.isArray(items) ? [...items] : [];
       if (moduleName === 'berita') {
         out.sort((a, b) => (Number(b.pinned || 0) - Number(a.pinned || 0)) || (String(b.published_at || '').localeCompare(String(a.published_at || ''))));
-        const limit = Number(query.get('limit') || 0);
-        if (limit > 0) out = out.slice(0, limit);
       }
+      const limit = Number(query.get('limit') || 0);
+      if (limit > 0) out = out.slice(0, limit);
       return asJSON({ ok: true, items: out, total: out.length });
     }
 
@@ -186,12 +215,6 @@
     }
 
     if (!isAdmin()) return asJSON({ ok: false, error: 'Unauthorized' }, 401);
-
-    if (moduleName === 'agenda' && action === 'save') {
-      const clean = (body.items || []).map((it) => ({ periode: String(it.periode || '').trim(), kegiatan: String(it.kegiatan || '').trim() })).filter((x) => x.periode || x.kegiatan);
-      dbSet(moduleName, clean);
-      return asJSON({ ok: true, count: clean.length });
-    }
 
     if (moduleName === 'klasemen' && action === 'save') {
       const clean = (body.items || []).map((it) => ({
@@ -214,13 +237,20 @@
       const editable = { ...body };
       delete editable.action;
       if (!editable.id && action === 'create') {
-        editable.id = moduleName === 'berita' ? (Math.max(0, ...items.map((x) => Number(x.id || 0))) + 1) : uid('');
+        editable.id = moduleName === 'berita' ? (Math.max(0, ...items.map((x) => Number(x.id || 0))) + 1) : uid('ID');
         editable.created_at = nowSql();
       }
 
       if (moduleName === 'berita') {
         editable.pinned = ['1', 'true', 'on', 1, true].includes(editable.pinned) ? 1 : 0;
         editable.published_at = normDate(editable.published_at);
+      }
+
+      if (['agenda', 'kompetisi'].includes(moduleName)) {
+        editable.nama_kegiatan = String(editable.nama_kegiatan || editable.kegiatan || '').trim();
+        editable.kegiatan = editable.nama_kegiatan;
+        editable.status = String(editable.status || 'Terjadwal');
+        editable.kategori = moduleName;
       }
 
       if (['atlit', 'pelatih'].includes(moduleName)) {
@@ -260,13 +290,12 @@
   window.fetch = async function (input, init = {}) {
     const url = typeof input === 'string' ? input : input.url;
     const { pathname, q } = parseQuery(url);
-    const method = String(init.method || 'GET').toUpperCase();
 
     if (pathname === 'auth_pengurus.php' || pathname === 'auth_api.php') {
-      return handleAuth(pathname, q, method, init);
+      return handleAuth(pathname, q, 'GET', init);
     }
 
-    const handled = await handleModule(pathname, q, method, init);
+    const handled = await handleModule(pathname, q, 'GET', init);
     if (handled) return handled;
 
     return nativeFetch(input, init);
