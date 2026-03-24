@@ -1,223 +1,51 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  // tanggal + tahun
-  const hariTanggal = document.getElementById('hariTanggal');
-  if (hariTanggal) {
-    hariTanggal.textContent = new Date().toLocaleDateString('id-ID', {
-      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
-    });
-  }
-  const year = document.getElementById('year');
-  if (year) year.textContent = new Date().getFullYear();
+const $ = (s,p=document)=>p.querySelector(s);
+const $$ = (s,p=document)=>Array.from(p.querySelectorAll(s));
+const API={berita:'berita_api.php',agenda:'agenda_api.php',klasemen:'klasemen_api.php',sponsor:'sponsor_api.php',atlit:'atlit_api.php',pelatih:'pelatih_api.php',pengurus:'pengurus_api.php',klub:'klub_api.php'};
 
-  // load navbar modular
-  const mount = document.getElementById('navbar');
-  if (mount) {
-    try {
-      const html = await fetch('navbar.html', { cache: 'no-store' }).then(r => r.text());
-      mount.innerHTML = html;
-      initMenu();
-      setActiveNav();
-    } catch (e) {
-      mount.innerHTML = '<header class="header"><div class="container"><a class="brand" href="index.html"><span>PSTI JATIM</span></a></div></header>';
-    }
-  }
+function esc(v=''){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));}
+function fmtDate(v){if(!v)return'-';const d=new Date(String(v).replace(' ','T'));return Number.isNaN(d)?v:d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});}
+function img(v,fallback='assets/logo.png'){return v&&String(v).trim()?String(v):fallback;}
 
-  // load berita home
-  await renderHomeNews();
+function navbar(){
+  const path=location.pathname.split('/').pop()||'index.html';
+  const links=[['Beranda','index.html'],['Berita','berita.html'],['Agenda','index.html#agenda'],['Klasemen','index.html#klasemen'],['Pengurus','pengurus.html'],['Atlet','atlit.html'],['Pelatih','pelatih.html'],['Klub','klub.html'],['Dashboard','dashboard.html']];
+  return `<div class="topbar"><div class="container"><span id="hariTanggal"></span><span>Pengprov PSTI Jawa Timur</span></div></div>
+  <header class="header"><div class="container nav-wrap"><a class="brand" href="index.html"><img src="assets/logo.png" alt="logo"><div><div>PSTI JATIM</div><small class="muted">Persatuan Sepak Takraw Indonesia</small></div></a>
+  <button class="menu-toggle" id="menuBtn">☰</button><nav class="menu" id="menu">${links.map(([t,h])=>`<a class="${path===h?'active':''}" href="${h}">${t}</a>`).join('')}</nav></div></header>`;
+}
+function footer(){return `<footer class="footer"><div class="container">© <span id="year"></span> Pengprov PSTI Jawa Timur · Semua hak dilindungi.</div></footer>`}
 
-  // load klasemen opsional
-  await loadKlasemen();
+async function apiList(name,qs=''){const r=await fetch(`${API[name]}?action=list${qs?`&${qs}`:''}`,{cache:'no-store'});return r.json();}
+async function apiGet(name,id){const r=await fetch(`${API[name]}?action=get&id=${encodeURIComponent(id)}`,{cache:'no-store'});return r.json();}
+
+function initLayout(){const n=$('#navbar');if(n)n.innerHTML=navbar();const f=$('#footer');if(f)f.innerHTML=footer();const d=$('#hariTanggal');if(d)d.textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});const y=$('#year');if(y)y.textContent=new Date().getFullYear();const b=$('#menuBtn'),m=$('#menu');if(b)b.onclick=()=>m.classList.toggle('show');}
+
+async function renderIndex(){
+  const [berita,agenda,klasemen,sponsor]=await Promise.all([apiList('berita','limit=6'),apiList('agenda'),apiList('klasemen'),apiList('sponsor')]);
+  const news=$('#homeNews');if(news){const items=berita.items||[];news.innerHTML=items.length?items.map((n,i)=>`<article class="card news-card"><img src="${img(n.banner,'assets/hero-musprov.jpg')}" alt="${esc(n.title)}"><span class="badge">${n.pinned?'Unggulan':'Berita'}</span><h3><a href="berita_detail.html?id=${encodeURIComponent(n.id)}">${esc(n.title||'-')}</a></h3><p class="muted">${esc((n.excerpt||'').slice(0,130))}</p><small class="muted">${esc(n.source_name||'PSTI Jatim')} · ${fmtDate(n.published_at)}</small></article>`).join(''):'<div class="card">Belum ada berita.</div>'}
+  const ag=$('#agendaList');if(ag){ag.innerHTML=(agenda.items||[]).slice(0,5).map(a=>`<div class="card"><strong>${esc(a.periode||'-')}</strong><div class="muted">${esc(a.kegiatan||'-')}</div></div>`).join('')||'<div class="card">Belum ada agenda.</div>'}
+  const kl=$('#klasemenBody');if(kl){kl.innerHTML=(klasemen.items||[]).map((k,i)=>`<tr><td>${i+1}</td><td>${esc(k.klub||'-')}</td><td>${k.main||0}</td><td>${k.menang||0}</td><td><strong>${k.poin||0}</strong></td></tr>`).join('')}
+  const sp=$('#sponsorList');if(sp){sp.innerHTML=(sponsor.items||[]).map(s=>`<div class="card"><img style="height:84px;object-fit:contain" src="${img(s.image)}" alt="${esc(s.name)}"><div class="muted">${esc(s.name||'Sponsor')}</div></div>`).join('')||'<div class="card">Sponsor belum tersedia.</div>'}
+}
+
+async function renderListPage(){
+  const wrap=$('#listWrap'); if(!wrap) return;
+  const mod=wrap.dataset.module; const detail=wrap.dataset.detail;
+  const j=await apiList(mod); const items=j.items||[];
+  wrap.innerHTML=items.map(it=>`<article class="card"><div style="display:flex;gap:.8rem"><img class="list-avatar" src="${img(it.foto||it.banner)}" alt="${esc(it.nama||it.title||it.nama_klub||'item')}"><div><h3 style="margin:.1rem 0">${esc(it.nama||it.title||it.nama_klub||it.klub||'-')}</h3><div class="muted">${esc(it.jabatan||it.kabupaten||it.source_name||it.pemilik||it.periode||'')}</div>${detail?`<a href="${detail}?id=${encodeURIComponent(it.id)}">Lihat detail</a>`:''}</div></div></article>`).join('')||'<div class="card">Data belum tersedia.</div>';
+}
+
+async function renderDetailPage(){
+  const root=$('#detailWrap'); if(!root) return;
+  const mod=root.dataset.module; const id=new URLSearchParams(location.search).get('id'); if(!id){root.innerHTML='<div class="card">ID tidak ditemukan.</div>';return;}
+  const j=await apiGet(mod,id); if(!j.ok||!j.item){root.innerHTML='<div class="card">Data tidak ditemukan.</div>';return;}
+  const it=j.item;
+  const rows=Object.entries(it).filter(([k,v])=>!['id','foto','banner','created_at','updated_at'].includes(k)&&v!==null&&v!=='' ).map(([k,v])=>`<div>${esc(k.replaceAll('_',' '))}</div><div>${Array.isArray(v)?esc(v.join(', ')):esc(v)}</div>`).join('');
+  root.innerHTML=`<article class="card"><div class="detail-head"><img src="${img(it.foto||it.banner,'assets/hero-musprov.jpg')}" alt="${esc(it.nama||it.title||'detail')}"><div><h2>${esc(it.nama||it.title||'-')}</h2><p class="muted">${esc(it.jabatan||it.source_name||'')}</p><div class="kv">${rows}</div></div></div></article>`;
+}
+
+document.addEventListener('DOMContentLoaded', async ()=>{initLayout();
+  if($('#homePage')) await renderIndex();
+  await renderListPage();
+  await renderDetailPage();
 });
-
-function setActiveNav() {
-  const path = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('#navbar a[href]').forEach(a => {
-    const href = a.getAttribute('href') || '';
-    if (href === path || (path === 'index.html' && href.startsWith('index.html#'))) {
-      a.classList.add('active');
-    }
-  });
-}
-
-function initMenu() {
-  const burger = document.getElementById('btnMenu');
-  const menu = document.getElementById('mainMenu');
-  if (!burger || !menu) return;
-
-  const isMobile = () => window.matchMedia('(max-width: 760px)').matches;
-
-  const backdrop = document.createElement('div');
-  backdrop.id = 'menu-backdrop';
-  Object.assign(backdrop.style, {
-    position: 'fixed', inset: '0', zIndex: '2147483590', display: 'none',
-    background: 'rgba(0,0,0,.001)'
-  });
-  document.body.appendChild(backdrop);
-
-  const closeMenu = () => {
-    menu.classList.remove('show');
-    burger.setAttribute('aria-expanded', 'false');
-    backdrop.style.display = 'none';
-    document.documentElement.style.overflow = '';
-    menu.querySelectorAll('.dropdown.show').forEach(d => d.classList.remove('show'));
-  };
-
-  const openMenu = () => {
-    menu.classList.add('show');
-    burger.setAttribute('aria-expanded', 'true');
-    backdrop.style.display = 'block';
-    document.documentElement.style.overflow = 'hidden';
-  };
-
-  burger.addEventListener('click', () => {
-    menu.classList.contains('show') ? closeMenu() : openMenu();
-  });
-
-  backdrop.addEventListener('click', closeMenu);
-  document.addEventListener('keydown', (e) => e.key === 'Escape' && closeMenu());
-  window.addEventListener('resize', () => !isMobile() && closeMenu());
-  window.addEventListener('scroll', () => isMobile() && closeMenu(), { passive: true });
-
-  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
-
-  menu.querySelectorAll('.has-dropdown > a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      if (!isMobile()) return;
-      e.preventDefault();
-      const drop = a.parentElement.querySelector('.dropdown');
-      if (drop) drop.classList.toggle('show');
-    });
-  });
-}
-
-async function renderHomeNews() {
-  const grid = document.getElementById('gridBerita');
-  const msg = document.getElementById('homeNewsMsg');
-  if (!grid) return;
-
-  try {
-    const raw = await fetch('berita_api.php?action=list&limit=6', { cache: 'no-store' }).then(r => r.text());
-    let j;
-    try { j = JSON.parse(raw); } catch { throw new Error('Response API tidak valid'); }
-    if (!j.ok) throw new Error(j.error || 'Gagal memuat berita');
-
-    const items = Array.isArray(j.items) ? j.items : [];
-    grid.innerHTML = '';
-
-    if (!items.length) {
-      grid.innerHTML = '<div class="card">Belum ada berita. Tambahkan melalui dashboard admin.</div>';
-      return;
-    }
-
-    grid.appendChild(heroCard(items[0]));
-    items.slice(1).forEach(it => grid.appendChild(newsCard(it)));
-  } catch (e) {
-    if (msg) msg.textContent = `Gagal memuat berita: ${e.message}`;
-  }
-}
-
-function fmtDate(s) {
-  if (!s) return '';
-  const d = new Date(String(s).replace(' ', 'T'));
-  if (Number.isNaN(d.getTime())) return s;
-  return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function heroCard(it) {
-  const el = document.createElement('article');
-  el.className = 'card-hero';
-  const title = escapeHtml(it.title || '(Tanpa judul)');
-  const excerpt = escapeHtml(it.excerpt || '');
-  const source = escapeHtml(it.source_name || 'PSTI Jatim');
-  const banner = it.banner || 'assets/contoh.jpg';
-  const url = it.source_url || '#';
-
-  el.innerHTML = `
-    <img src="${banner}" alt="${title}">
-    <div class="content">
-      <span class="badge">${it.pinned ? 'Pinned' : 'Berita'}</span>
-      <h2 style="margin:.55rem 0 .45rem;line-height:1.2">${title}</h2>
-      <div class="excerpt">${excerpt}</div>
-      <div class="muted" style="font-size:.86rem;margin-top:.45rem">${source}${it.published_at ? ` • ${fmtDate(it.published_at)}` : ''}</div>
-      ${url && url !== '#' ? `<a class="btn btn-small" style="margin-top:.6rem" href="${url}" target="_blank" rel="noopener">Baca Selengkapnya</a>` : ''}
-    </div>`;
-  return el;
-}
-
-function newsCard(it) {
-  const el = document.createElement('article');
-  el.className = 'card news-card';
-  const title = escapeHtml(it.title || '(Tanpa judul)');
-  const excerpt = escapeHtml(it.excerpt || '');
-  const source = escapeHtml(it.source_name || 'PSTI Jatim');
-  const banner = it.banner || 'assets/contoh.jpg';
-  const url = it.source_url || '#';
-
-  el.innerHTML = `
-    <img class="news-thumb" src="${banner}" alt="${title}">
-    <h3 class="news-title">${url && url !== '#' ? `<a href="${url}" target="_blank" rel="noopener">${title}</a>` : title}</h3>
-    <p class="excerpt">${excerpt}</p>
-    <div class="news-meta">${source}${it.published_at ? ` • ${fmtDate(it.published_at)}` : ''}</div>
-    ${url && url !== '#' ? `<a class="news-link" href="${url}" target="_blank" rel="noopener">Baca <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}`;
-  return el;
-}
-
-async function loadAgenda() {
-  const ul = document.getElementById('jadwalList');
-  if (!ul) return;
-  try {
-    const r = await fetch('agenda_api.php?action=list', { cache: 'no-store' });
-    const j = await r.json();
-    if (!j.ok || !Array.isArray(j.items)) return;
-    ul.innerHTML = j.items.map(it => `
-      <li><strong>${escapeHtml(String(it.periode ?? ''))}</strong><span>${escapeHtml(String(it.kegiatan ?? ''))}</span></li>
-    `).join('');
-  } catch {}
-}
-
-async function loadKlasemen() {
-  const tbody = document.querySelector('#tabelKlasemen tbody');
-  if (!tbody) return;
-  try {
-    const r = await fetch('klasemen_api.php?action=list', { cache: 'no-store' });
-    const j = await r.json();
-    const klasemen = (j && j.ok && Array.isArray(j.items)) ? j.items : [];
-    if (!klasemen.length) return;
-
-    tbody.innerHTML = klasemen.map(k => `
-      <tr>
-        <td>${escapeHtml(String(k.klub ?? ''))}</td>
-        <td>${escapeHtml(String(k.main ?? '0'))}</td>
-        <td>${escapeHtml(String(k.menang ?? '0'))}</td>
-        <td><strong>${escapeHtml(String(k.poin ?? '0'))}</strong></td>
-      </tr>`).join('');
-  } catch {}
-}
-
-async function loadSponsor() {
-  const box = document.getElementById('sponsorList');
-  if (!box) return;
-  try {
-    const r = await fetch('sponsor_api.php?action=list', { cache: 'no-store' });
-    const j = await r.json();
-    if (!j.ok || !Array.isArray(j.items) || !j.items.length) return;
-    box.innerHTML = j.items.map(s => {
-      const name = escapeHtml(String(s.name ?? 'Sponsor'));
-      const image = escapeHtml(String(s.image || 'assets/contoh.jpg'));
-      const url = String(s.url || '').trim();
-      if (url) {
-        return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${name}"><img src="${image}" alt="${name}"></a>`;
-      }
-      return `<img src="${image}" alt="${name}">`;
-    }).join('');
-  } catch {}
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
