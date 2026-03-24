@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detail Pelatih — PSTI Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+
+  <!-- Header -->
+  <header class="bg-blue-500 py-3 shadow">
+    <div class="container mx-auto flex items-center justify-between px-4">
+      <a href="index.html" class="flex items-center gap-2">
+        <img src="assets/logo.png" alt="Logo PSTI Jatim" class="w-10 h-10 rounded">
+        <span class="font-bold">PSTI JATIM</span>
+      </a>
+      <button onclick="history.back()" class="bg-white text-gray-900 px-3 py-1 rounded hover:bg-gray-200">
+        ← Kembali
+      </button>
+    </div>
+  </header>
+
+  <!-- Konten -->
+  <main class="container mx-auto px-4 py-6">
+    <div id="detail" class="bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col md:flex-row gap-6">
+      <img id="foto" src="" alt="Foto Pelatih"
+        class="w-full md:w-64 h-64 object-cover object-center rounded-lg shadow-md">
+
+      <div class="flex-1">
+        <h2 id="nama" class="text-2xl font-bold mb-2">Nama Pelatih</h2>
+        <p id="jk" class="mb-1"></p>
+        <p id="ttl" class="mb-1"></p>
+        <p id="usia" class="mb-1"></p>
+        <p id="tinggi" class="mb-1"></p>
+        <p id="berat" class="mb-1"></p>
+        <p id="alamat" class="mb-1"></p>
+        <p id="pendidikan" class="mb-1"></p>
+        <p id="program_studi" class="mb-1"></p>
+        <p id="sekolah" class="mb-1"></p>
+        <p id="cabor" class="mb-1"></p>
+        <p id="telepon" class="mb-1 flex items-center gap-1">
+          <span>📞</span><span></span>
+        </p>
+        <p id="lisensi" class="mb-3"></p>
+
+        <div id="sertifikat" class="mb-4">
+          <h3 class="font-semibold text-lg">Sertifikat Pelatihan</h3>
+          <ul class="list-disc list-inside text-gray-300"></ul>
+        </div>
+
+        <div id="pengalaman" class="mb-4">
+          <h3 class="font-semibold text-lg">Pengalaman Melatih</h3>
+          <ul class="list-disc list-inside text-gray-300"></ul>
+        </div>
+
+        <div id="prestasi" class="mb-4">
+          <h3 class="font-semibold text-lg">Prestasi Melatih</h3>
+          <ul class="list-disc list-inside text-gray-300"></ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      if (!id) return;
+
+      try {
+        const res = await fetch('pelatih_api.php?action=get&id=' + encodeURIComponent(id));
+        const j = await res.json();
+        if (!j.ok) throw new Error(j.error || 'Gagal memuat data');
+        const it = j.item;
+
+        document.getElementById('foto').src = it.foto || 'assets/no-photo.png';
+        document.getElementById('nama').textContent = it.nama || '';
+        document.getElementById('jk').textContent = `Jenis Kelamin: ${it.jk || '-'}`;
+        document.getElementById('ttl').textContent = `Tempat, Tanggal Lahir: ${it.ttl || '-'}`;
+        document.getElementById('usia').textContent = `Usia: ${it.usia || '-'} Tahun`;
+        document.getElementById('tinggi').textContent = `Tinggi: ${it.tinggi || '-'} cm`;
+        document.getElementById('berat').textContent = `Berat: ${it.berat || '-'} kg`;
+        document.getElementById('alamat').textContent = it.alamat || '';
+        document.getElementById('pendidikan').textContent = `Pendidikan Terakhir: ${it.pendidikan || '-'}`;
+        document.getElementById('program_studi').textContent = `Program Studi: ${it.program_studi || '-'}`;
+        document.getElementById('sekolah').textContent = `Sekolah/Universitas: ${it.sekolah || '-'}`;
+        document.getElementById('cabor').textContent = `Cabang Olahraga: ${it.cabor || '-'}`;
+        document.getElementById('telepon').lastElementChild.textContent = it.telepon || '-';
+        document.getElementById('lisensi').textContent = `Lisensi: ${it.lisensi || '-'}`;
+
+        const sertifikatList = document.querySelector('#sertifikat ul');
+        (it.sertifikat || []).forEach((s, i) => {
+          const li = document.createElement('li');
+          li.textContent = `${s} (${it.tahun_sertifikat[i] || ''})`;
+          sertifikatList.appendChild(li);
+        });
+
+        const pengalamanList = document.querySelector('#pengalaman ul');
+        (it.pengalaman || []).forEach((p, i) => {
+          const li = document.createElement('li');
+          li.textContent = `${p} (${it.tahun_pengalaman[i] || ''})`;
+          pengalamanList.appendChild(li);
+        });
+
+        const prestasiList = document.querySelector('#prestasi ul');
+        (it.prestasi || []).forEach((p, i) => {
+          const li = document.createElement('li');
+          li.textContent = `${p} (${it.tahun_prestasi[i] || ''})`;
+          prestasiList.appendChild(li);
+        });
+
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Detail Pengurus — PSTI Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="bg-blue-600 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center">
+      <a class="flex items-center gap-2" href="index.html">
+        <img src="assets/logo.png" alt="Logo PSTI Jatim" class="w-10 h-10 rounded-full">
+        <span class="font-bold text-lg">PSTI JATIM</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto px-4 py-6">
+    <!-- Tombol kembali -->
+    <div class="mb-4">
+      <button id="btnBack" class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 transition">← Kembali</button>
+    </div>
+
+    <!-- Detail Card -->
+    <div class="bg-gray-800 rounded-lg shadow p-6">
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Foto -->
+        <div>
+          <img id="foto" class="w-full h-56 object-cover rounded-lg bg-gray-700" alt="Foto Pengurus">
+        </div>
+
+        <!-- Info -->
+        <div class="md:col-span-2 space-y-3">
+          <h2 id="nama" class="text-2xl font-bold">-</h2>
+
+          <!-- chips kategori & jabatan -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="chipKategori" class="px-2 py-0.5 rounded-full border border-gray-600 text-gray-200 text-xs hidden"></span>
+            <span id="chipJabatan"  class="px-2 py-0.5 rounded-full border border-gray-600 text-gray-200 text-xs hidden"></span>
+          </div>
+
+          <p id="jabatan" class="text-gray-300 text-sm"></p>
+          <p id="telepon" class="text-gray-300 text-sm"></p>
+          <p id="alamat" class="text-gray-300 text-sm"></p>
+
+          <!-- Biografi -->
+          <div>
+            <h3 class="font-semibold text-lg mt-4 mb-1">Biografi</h3>
+            <p id="biografi" class="text-gray-300 whitespace-pre-line">-</p>
+          </div>
+
+          <!-- Pendidikan -->
+          <div>
+            <h3 class="font-semibold text-lg mt-4 mb-1">Riwayat Pendidikan</h3>
+            <ul id="pendidikan" class="list-disc list-inside text-gray-300 space-y-1"></ul>
+          </div>
+
+          <!-- Sertifikat -->
+          <div>
+            <h3 class="font-semibold text-lg mt-4 mb-1">Sertifikat</h3>
+            <ul id="sertifikat" class="list-disc list-inside text-gray-300 space-y-1"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="msg" class="text-sm mt-4 text-gray-400"></div>
+  </main>
+
+  <script>
+  (function(){
+    const $ = id => document.getElementById(id);
+    const msg = $('msg');
+
+    // tombol kembali
+    $('btnBack').addEventListener('click', ()=>{
+      try{
+        if (document.referrer && new URL(document.referrer).origin === location.origin) {
+          history.back();
+        } else {
+          location.href = 'pengurus.html';
+        }
+      }catch(_){ location.href = 'pengurus.html'; }
+    });
+
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id') || '';
+
+    const API = (location.protocol === 'file:')
+      ? 'http://localhost/psti-jatim/pengurus_api.php'
+      : 'pengurus_api.php';
+
+    function listToUl(el, text){
+      el.innerHTML = '';
+      const lines = (text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      if (!lines.length){ el.innerHTML = '<li class="text-gray-400">-</li>'; return; }
+      lines.forEach(s => {
+        const li = document.createElement('li');
+        li.textContent = s;
+        el.appendChild(li);
+      });
+    }
+
+    // fallback kategori dari jabatan (untuk data lama)
+    const CAT_ORDER = ['Pelindung','Pembina','Penasehat','Ketua Umum','Wakil Ketua','Sekretaris','Bendahara','Bidang','Lainnya'];
+    const CAT_MAP = [
+      {rx:/pelindung/i, name:'Pelindung'},
+      {rx:/pembina/i,  name:'Pembina'},
+      {rx:/penasihat|penasehat/i, name:'Penasehat'},
+      {rx:/ketua\s*umum/i, name:'Ketua Umum'},
+      {rx:/wakil|wkl\.?\s*ketua/i, name:'Wakil Ketua'},
+      {rx:/sekretaris/i, name:'Sekretaris'},
+      {rx:/bendahara/i, name:'Bendahara'},
+      {rx:/bidang|koor(dinator)?/i, name:'Bidang'},
+    ];
+    const inferKategori = (it)=>{
+      if (it.kategori && it.kategori.trim()) return it.kategori;
+      const hit = CAT_MAP.find(m=> m.rx.test(it.jabatan||''));
+      return hit ? hit.name : 'Lainnya';
+    };
+
+    fetch(API+'?action=get&id='+encodeURIComponent(id))
+      .then(r => r.json())
+      .then(j => {
+        if (!j.ok) throw new Error(j.error || 'Data tidak ditemukan');
+        const it = j.item;
+
+        const kategori = inferKategori(it);
+
+        $('nama').textContent = it.nama || '-';
+        $('jabatan').textContent = it.jabatan ? it.jabatan : '';
+        $('telepon').textContent = it.telepon ? ('📞 ' + it.telepon) : '';
+        $('alamat').textContent = it.alamat || '';
+
+        $('foto').src = it.foto || 'assets/contoh.jpg';
+        $('foto').alt = it.nama || 'Foto';
+
+        // chips
+        if (kategori){ $('chipKategori').textContent = kategori; $('chipKategori').classList.remove('hidden'); }
+        if (it.jabatan){ $('chipJabatan').textContent = it.jabatan; $('chipJabatan').classList.remove('hidden'); }
+
+        // Biografi: pakai it.biografi, fallback ke it.pengalaman (data lama)
+        const bio = (it.biografi || it.pengalaman || '').trim();
+        $('biografi').textContent = bio || '-';
+
+        listToUl($('pendidikan'), it.pendidikan);
+        listToUl($('sertifikat'), it.sertifikat);
+      })
+      .catch(err => {
+        console.error(err);
+        msg.classList.add('text-red-400');
+        msg.textContent = 'Gagal memuat detail: ' + err.message;
+      });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daftar Pelatih — PSTI Jatim</title>
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <script src="https://kit.fontawesome.com/a2f0b5e6a2.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="container">
+      <div class="left">
+        <span id="hariTanggal"></span>
+        <span class="live"><i class="fa-solid fa-circle-play"></i> LIVE</span>
+      </div>
+      <div class="right social">
+        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header overlay">
+    <div class="container">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.jpeg" alt="Logo PSTI Jatim">
+        <span>PSTI JATIM</span>
+      </a>
+      <nav class="nav">
+        <button class="hamburger" aria-label="menu"><i class="fa-solid fa-bars"></i></button>
+        <ul class="menu">
+          <li><a class="active" href="index.html">Home</a></li>
+          <li><a href="#tentang">Tentang PSTI Jatim</a></li>
+          <li class="has-dropdown">
+            <a href="#">Anggota</a>
+            <ul class="dropdown">
+              <li><a href="pengurus.html">Pengurus</a></li>
+              <li><a href="klub.html">Klub & Askab</a></li>
+              <li><a href="#">Wasit</a></li>
+            </ul>
+
+            <li class="has-dropdown">
+              <a href="#">Tracer</a>
+              <ul class="dropdown">
+                <li><a href="pelatih.html">Pelatih</a></li>
+                <li><a href="klub.html">Atlit</a></li>
+              </ul>
+
+          </li>
+          <li class="has-dropdown">
+            <a href="#">Kompetisi</a>
+            <ul class="dropdown">
+              <li><a href="#">Kejurda</a></li>
+              <li><a href="#">Piala Gubernur</a></li>
+              <li><a href="#">Agenda & Jadwal</a></li>
+            </ul>
+          </li>
+          <li><a href="#live">Live Stream</a></li>
+          <li><a href="#login">Login</a></li>
+          <li class="search"><i class="fa-solid fa-magnifying-glass"></i></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="container" style="max-width:1100px;margin:22px auto">
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 16px">
+      <h1 style="margin:0;flex:1">Daftar Pelatih PSTI Jawa Timur</h1>
+      <a class="btn btn-small btn-ghost" href="index.html">Kembali</a>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <input id="q" placeholder="Cari nama / cabang olahraga / lisensi..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ffffff22;background:#0f2536;color:#e9f5ff">
+    </div>
+
+    <section id="cards" class="cards-grid"></section>
+  </main>
+
+  <script>
+    // hamburger menu
+    document.addEventListener('click', (e)=>{
+      const hb = e.target.closest('.hamburger');
+      if (hb) document.querySelector('.menu').classList.toggle('show');
+    });
+
+    // tanggal
+    (function(){
+      const el = document.getElementById('hariTanggal');
+      const d  = new Date();
+      const id = d.toLocaleDateString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+      el && (el.textContent = id);
+    })();
+
+    // load pelatih
+    const API = 'pelatih_api.php';
+    const cards = document.getElementById('cards');
+    const q = document.getElementById('q');
+    let data = [];
+
+    function render(list){
+      cards.innerHTML = '';
+      if(!list.length){
+        cards.innerHTML = '<div class="muted">Belum ada pelatih terdaftar.</div>';
+        return;
+      }
+      list.forEach(it=>{
+        const foto = it.foto 
+          ? `<img src="${it.foto}" style="width:100%;height:auto;max-height:200px;object-fit:contain;border-radius:10px;background:#000" alt="${it.nama || 'Pelatih'}">`
+          : `<div style="width:100%;height:200px;display:flex;align-items:center;justify-content:center;border:1px dashed #ffffff33;border-radius:10px;color:#a6c3d9">Tanpa Foto</div>`;
+
+        const el = document.createElement('article');
+        el.className = 'card';
+        el.innerHTML = `
+          ${foto}
+          <h3 style="margin:.4rem 0 .2rem">${it.nama||'-'}</h3>
+          <div class="muted">${it.cabor || '-'}</div>
+          <div class="muted">Lisensi: ${it.lisensi || '-'}</div>
+          <div class="muted">${it.telepon || ''}</div>
+          <div style="margin-top:8px">
+            <a class="btn btn-small" href="pelatih-detail.html?id=${encodeURIComponent(it.id)}">Detail</a>
+          </div>`;
+        cards.appendChild(el);
+      });
+    }
+
+    function filter(){
+      const s = (q.value||'').toLowerCase();
+      const list = !s ? data : data.filter(it=>{
+        return [it.nama,it.cabor,it.lisensi].join(' ').toLowerCase().includes(s);
+      });
+      render(list);
+    }
+
+    async function load(){
+      try{
+        const r = await fetch(API+'?action=list', {credentials:'same-origin'});
+        const j = await r.json();
+        data = j.items || [];
+        render(data);
+      }catch(e){
+        cards.innerHTML = '<div class="muted">Gagal memuat pelatih.</div>';
+        console.error(e);
+      }
+    }
+
+    q.addEventListener('input', filter);
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pengurus — PSTI Jatim</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header (copy dari index.html) -->
+  <header class="header overlay">
+    <div class="container" style="display:flex;align-items:center;gap:12px">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.jpeg" alt="Logo PSTI Jatim">
+        <span>PSTI JATIM</span>
+      </a>
+      <nav class="nav">
+        <button class="hamburger" aria-label="menu">☰</button>
+        <ul class="menu">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#tentang">Tentang PSTI Jatim</a></li>
+          <li class="has-dropdown">
+            <a class="active" href="pengurus.html">Anggota</a>
+            <ul class="dropdown">
+              <li><a href="pengurus.html">Pengurus</a></li>
+              <li><a href="#">Klub & Askab</a></li>
+              <li><a href="#">Wasit</a></li>
+            </ul>
+          </li>
+          <li class="has-dropdown">
+            <a href="#">Kompetisi</a>
+            <ul class="dropdown">
+              <li><a href="#">Kejurda</a></li>
+              <li><a href="#">Piala Gubernur</a></li>
+              <li><a href="#">Agenda & Jadwal</a></li>
+            </ul>
+          </li>
+          <li><a href="#live">Live Stream</a></li>
+          <li><a href="login_pengurus.html">Login</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="max-width:1100px;margin:22px auto">
+    <h1 style="margin:12px 0">Pengurus PSTI Jawa Timur</h1>
+
+    <!-- tombol kembali + search -->
+    <div style="display:flex;gap:10px;align-items:center;margin:12px 0 18px">
+      <button id="btnBack" class="btn btn-small btn-ghost" type="button">← Kembali</button>
+      <input id="q" class="searchbar" placeholder="Cari nama / jabatan / license..." style="flex:1" />
+    </div>
+
+    <div id="list" class="grid-pengurus"></div>
+    <div id="msg" class="muted" style="margin-top:10px"></div>
+  </main>
+
+  <style>
+    .grid-pengurus{ display:grid; gap:16px; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); }
+    .card-pengurus{ background:var(--card); border:1px solid #ffffff14; border-radius:14px; overflow:hidden }
+    .card-pengurus img{ width:100%; height:160px; object-fit:cover; display:block; opacity:.98 }
+    .card-pengurus .body{ padding:12px 14px }
+    .muted-sm{ color:var(--muted); font-size:.9rem }
+    .searchbar{ width:100%; max-width:420px; background:#0b2030; border:1px solid #ffffff1a;
+                color:var(--text); border-radius:10px; padding:10px 12px; outline:none }
+  </style>
+
+  <script>
+  // menu mobile sederhana (kalau kamu sudah punya di app.js boleh pakai itu)
+  (function(){
+    const ham = document.querySelector('.hamburger');
+    const menu = document.querySelector('.menu');
+    if(ham && menu){ ham.addEventListener('click', ()=> menu.classList.toggle('show')); }
+  })();
+  </script>
+
+  <script>
+  (function(){
+    const listEl = document.getElementById('list');
+    const qEl    = document.getElementById('q');
+    const msg    = document.getElementById('msg');
+
+    // tombol kembali
+    document.getElementById('btnBack').addEventListener('click', ()=>{
+      if (history.length > 1) history.back();
+      else location.href = 'index.html';
+    });
+
+    // kalau dibuka via file:// fallback ke localhost; di hosting akan otomatis pakai relative path
+    const API = (location.protocol === 'file:')
+      ? 'http://localhost/psti-jatim/pengurus_api.php'
+      : 'pengurus_api.php';
+
+    let items = [];
+
+    function card(it){
+      const div = document.createElement('div');
+      div.className = 'card-pengurus';
+      const foto = it.foto || 'assets/contoh.jpg';
+      div.innerHTML = `
+        <img src="${foto}" alt="">
+        <div class="body">
+          <div style="font-weight:800">${it.nama || '-'}</div>
+          <div class="muted-sm">${(it.jabatan || '')}</div>
+          <div class="muted-sm" style="margin-top:4px">${it.license || ''}</div>
+          <a class="btn btn-small" style="margin-top:10px" href="pengurus-detail.html?id=${encodeURIComponent(it.id)}">Detail</a>
+        </div>`;
+      return div;
+    }
+
+    function render(filter=''){
+      listEl.innerHTML = '';
+      const q = (filter||'').toLowerCase();
+      const data = !q ? items : items.filter(it =>
+        (it.nama||'').toLowerCase().includes(q) ||
+        (it.jabatan||'').toLowerCase().includes(q) ||
+        (it.license||'').toLowerCase().includes(q)
+      );
+      if (!data.length){
+        msg.textContent = 'Belum ada data pengurus atau tidak ada yang cocok.';
+        return;
+      }
+      msg.textContent = '';
+      data.forEach(it => listEl.appendChild(card(it)));
+    }
+
+    qEl.addEventListener('input', e => render(e.target.value));
+
+    fetch(API+'?action=list')
+      .then(r => r.json())
+      .then(j => { items = j.items || []; render(''); })
+      .catch(err => {
+        console.error(err);
+        msg.style.color = '#ffb3b3';
+        msg.textContent = 'Tidak bisa memuat data. Buka lewat http://localhost/psti-jatim/pengurus.html';
+      });
+  })();
+  </script>
+
+  <!-- kalau kamu pakai JS global untuk menu/dropdown, boleh aktifkan -->
+  <!-- <script defer src="app.js"></script> -->
+</body>
+</html>

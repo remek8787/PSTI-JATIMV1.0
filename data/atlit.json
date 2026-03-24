@@ -1,0 +1,51 @@
+[
+    {
+        "id": "0E3A590C",
+        "created_at": "2025-08-14 13:32:15",
+        "nama": "Moh. Hatta",
+        "jk": "Laki-laki",
+        "tgl_lahir": "1902-12-08",
+        "tempat_lahir": "Bukit Tinggi",
+        "medali": [
+            "emas",
+            "perak"
+        ],
+        "jumlah": [
+            "10",
+            "10"
+        ],
+        "tahun": [
+            "1945",
+            "1945"
+        ],
+        "event": [
+            "Memerdekakan Indonesia",
+            "Memerdekakan Indonesia"
+        ],
+        "sejarah_singkat": "Drs. Mohammad Hatta atau juga dikenal dengan sapaan Bung Hatta adalah seorang negarawan, konseptor dan ekonom yang menjabat sebagai Wakil Presiden Indonesia pertama sejak 1945 hingga pengunduran dirinya pada 1956.",
+        "foto": "uploads/atlit/at_0E3A590C_1755153135.jpg",
+        "updated_at": "2025-08-14 13:39:59"
+    },
+    {
+        "id": "754DD021",
+        "created_at": "2025-08-14 14:18:35",
+        "nama": "COBA",
+        "jk": "Laki-laki",
+        "tgl_lahir": "2025-08-14",
+        "tempat_lahir": "IDN",
+        "medali": [
+            "perak"
+        ],
+        "jumlah": [
+            "10"
+        ],
+        "tahun": [
+            "2026"
+        ],
+        "event": [
+            "Belum Tahu"
+        ],
+        "sejarah_singkat": "Bla Bla Bla",
+        "foto": "uploads/atlit/at_754DD021_1755155915.jpg"
+    }
+]

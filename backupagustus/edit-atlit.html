@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Atlet — PSTI Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Header -->
+  <header class="bg-blue-600 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a class="flex items-center gap-2" href="index.html">
+        <img src="assets/logo.jpeg" alt="Logo PSTI Jatim" class="w-10 h-10 rounded-full">
+        <span class="font-bold text-lg">PSTI JATIM</span>
+      </a>
+      <div class="flex items-center gap-4">
+        <span class="text-sm">Login sebagai: <strong id="who">-</strong></span>
+        <button id="btnLogout" class="px-3 py-1 rounded bg-white text-blue-700 hover:bg-gray-200">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">Admin Atlet</h1>
+
+    <!-- Form -->
+    <form id="f" class="bg-gray-800 p-6 rounded-lg space-y-4" enctype="multipart/form-data">
+      <input type="hidden" name="id" id="id">
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <label>Nama *<input type="text" name="nama" id="nama" required class="mt-1 w-full p-2 rounded bg-gray-700 border border-gray-600"></label>
+        <label>Jenis Kelamin*<select name="jk" id="jk" required class="mt-1 w-full p-2 rounded bg-gray-700 border border-gray-600"><option value="">-- Pilih --</option><option>Laki-laki</option><option>Perempuan</option></select></label>
+        <label>Tanggal Lahir<input type="date" name="tgl_lahir" id="tgl_lahir" class="mt-1 w-full p-2 rounded bg-gray-700 border border-gray-600"></label>
+        <label>Tempat Lahir<input type="text" name="tempat_lahir" id="tempat_lahir" class="mt-1 w-full p-2 rounded bg-gray-700 border border-gray-600"></label>
+      </div>
+
+      <!-- Dynamic Pencapaian -->
+      <div>
+        <label class="block mb-2">Pencapaian (Opsional)</label>
+        <div id="medali-wrap" class="space-y-2"></div>
+        <button type="button" onclick="addMedali()" class="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500">+ Tambah Pencapaian</button>
+      </div>
+
+      <div>
+        <label>Sejarah Singkat (Opsional)</label>
+        <textarea name="sejarah_singkat" id="sejarah_singkat" rows="3" class="mt-1 w-full p-2 rounded bg-gray-700 border border-gray-600"></textarea>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4 items-center">
+        <label>Foto (opsional)<input type="file" name="foto" id="foto" accept=".jpg,.jpeg,.png,.webp" class="mt-1 w-full p-2 rounded bg-gray-700 border border-gray-600"></label>
+        <img id="preview" src="" alt="" class="max-w-[160px] rounded-lg hidden">
+      </div>
+
+      <div class="flex gap-3">
+        <button class="px-4 py-2 bg-green-600 rounded hover:bg-green-500" type="submit" id="btnSave">Simpan / Perbarui</button>
+        <button class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500" type="button" id="btnReset">Reset Form</button>
+      </div>
+      <div id="stat" class="text-sm mt-2"></div>
+    </form>
+
+    <!-- Table -->
+    <div class="bg-gray-800 p-6 rounded-lg mt-6">
+      <h3 class="mb-3 font-semibold text-lg">Daftar Atlet</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm" id="tbl">
+          <thead class="bg-gray-700">
+            <tr>
+              <th class="p-2">Foto</th>
+              <th class="p-2">Nama</th>
+              <th class="p-2">Pencapaian</th>
+              <th class="p-2">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+<script>
+function addMedali(){
+  const wrap = document.getElementById('medali-wrap');
+  const div = document.createElement('div');
+  div.className = 'flex gap-2';
+  div.innerHTML = `
+    <select name="medali[]" class="p-2 rounded bg-gray-700 border border-gray-600">
+      <option value="">-- Pilih Medali --</option>
+      <option value="emas">🥇 Emas</option>
+      <option value="perak">🥈 Perak</option>
+      <option value="perunggu">🥉 Perunggu</option>
+    </select>
+    <input type="number" name="jumlah[]" placeholder="Jumlah" class="w-20 p-2 rounded bg-gray-700 border border-gray-600">
+    <input type="text" name="tahun[]" placeholder="Tahun" class="w-28 p-2 rounded bg-gray-700 border border-gray-600">
+    <input type="text" name="event[]" placeholder="Event" class="flex-1 p-2 rounded bg-gray-700 border border-gray-600">
+  `;
+  wrap.appendChild(div);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  addMedali();
+  const API = 'atlit_api.php';
+  const AUTH = 'auth_pengurus.php';
+  const $ = id => document.getElementById(id);
+  const f = $('f'), stat = $('stat'), preview = $('preview');
+
+  const info  = t => { stat.style.color = '#9be598'; stat.textContent = t; };
+  const error = t => { stat.style.color = '#ffb3b3'; stat.textContent = t; };
+
+  (async () => {
+    try{
+      const r = await fetch(AUTH+'?action=me', {credentials:'same-origin'});
+      const j = await r.json();
+      if (!j.admin) {
+        location.href = 'login_pengurus.html?next=' + encodeURIComponent('edit-atlit.html');
+        return;
+      }
+      $('who').textContent = j.user || 'Pengurus';
+      loadList();
+    }catch(e){
+      location.href = 'login_pengurus.html?next=' + encodeURIComponent('edit-atlit.html');
+    }
+  })();
+
+  $('btnLogout').addEventListener('click', async ()=>{
+    try{ await fetch(AUTH+'?action=logout', {credentials:'same-origin'}); }catch(e){}
+    location.href='login_pengurus.html?next=' + encodeURIComponent('edit-atlit.html');
+  });
+
+  function renderMedali(it){
+    if(!it.medali || !it.jumlah) return '';
+    let out = '';
+    it.medali.forEach((m,i)=>{
+      if(!m) return;
+      const icon = m==='emas'?'🥇': m==='perak'?'🥈':'🥉';
+      out += `${icon} ${it.jumlah[i]||''} (${it.tahun[i]||''} ${it.event[i]||''})<br>`;
+    });
+    return out;
+  }
+
+  function renderRow(it){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="p-2">${it.foto? `<img src="${it.foto}" class="w-12 h-12 object-cover rounded">` : '-'}</td>
+    <td class="p-2 font-semibold">${it.nama||''}</td>
+    <td class="p-2">${renderMedali(it)}</td>
+    <td class="p-2 flex gap-2">
+      <button class="px-2 py-1 bg-blue-600 rounded" data-act="edit" data-id="${it.id}">Edit</button>
+      <button class="px-2 py-1 bg-red-600 rounded" data-act="del" data-id="${it.id}">Hapus</button>
+      <a href="atlit-detail.html?id=${it.id}" target="_blank" class="px-2 py-1 bg-gray-600 rounded">View</a>
+    </td>`;
+  return tr;
+}
+
+  function loadList(){
+    fetch(API+'?action=list').then(r=>r.json()).then(j=>{
+      const tb = document.querySelector('#tbl tbody'); tb.innerHTML='';
+      (j.items||[]).forEach(it=> tb.appendChild(renderRow(it)));
+    }).catch(e=> error('Gagal memuat list: '+e.message));
+  }
+
+  f.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(f);
+    fd.append('action', $('id').value ? 'update' : 'create');
+    try{
+      $('btnSave').disabled = true; info('Menyimpan...');
+      const res  = await fetch(API, { method:'POST', body: fd });
+      const j = await res.json();
+      if(!res.ok || !j.ok) throw new Error(j.error || ('HTTP '+res.status));
+      info('Tersimpan ✔');
+      f.reset(); $('id').value=''; preview.style.display='none';
+      loadList();
+    }catch(err){ error(err.message); }
+    finally{ $('btnSave').disabled = false; }
+  });
+
+  $('btnReset').addEventListener('click', ()=>{
+    f.reset(); $('id').value=''; preview.style.display='none'; stat.textContent='';
+  });
+
+  document.querySelector('#tbl').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const id  = btn.dataset.id;
+    if (btn.dataset.act==='edit'){
+      const j = await (await fetch(API+'?action=get&id='+encodeURIComponent(id))).json();
+      if(!j.ok) return error('Tidak ditemukan');
+      const it = j.item;
+      ['id','nama','jk','tgl_lahir','tempat_lahir','sejarah_singkat'].forEach(k=> $(k).value = it[k]||'');
+
+      document.getElementById('medali-wrap').innerHTML = '';
+      if(it.medali){
+        it.medali.forEach((m,i)=>{
+          addMedali();
+          const row = document.getElementById('medali-wrap').lastChild;
+          row.querySelector('select').value = m;
+          row.querySelector('input[name="jumlah[]"]').value = it.jumlah[i]||'';
+          row.querySelector('input[name="tahun[]"]').value = it.tahun[i]||'';
+          row.querySelector('input[name="event[]"]').value = it.event[i]||'';
+        });
+      }
+      if (it.foto){ preview.src = it.foto; preview.style.display='block'; } else preview.style.display='none';
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+    if (btn.dataset.act==='del'){
+      if(!confirm('Hapus data ini?')) return;
+      const fd = new FormData(); fd.append('action','delete'); fd.append('id',id);
+      const res = await fetch(API, {method:'POST', body:fd});
+      const j = await res.json();
+      if(!res.ok || !j.ok) return error(j.error||('HTTP '+res.status));
+      loadList(); info('Terhapus ✔');
+    }
+  });
+
+  $('foto').addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(file){ preview.src = URL.createObjectURL(file); preview.style.display='block'; }
+  });
+});
+</script>
+</body>
+</html>

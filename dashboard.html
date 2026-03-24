@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin CMS — PSTI Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 selection:bg-sky-500/30">
+  <div class="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,.18),transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(16,185,129,.14),transparent_35%)]"></div>
+
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-slate-950/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="assets/logo.png" class="h-10 w-10 rounded-xl ring-1 ring-white/15" alt="logo">
+        <div>
+          <div class="font-extrabold leading-none">PSTI JATIM CMS</div>
+          <div class="text-xs text-slate-400">Kelola berita, agenda, klasemen, sponsor</div>
+        </div>
+      </a>
+      <div class="flex items-center gap-3 text-sm">
+        <span class="text-slate-300">Admin: <b id="who">-</b></span>
+        <button id="btnLogout" class="px-3 py-1.5 rounded-lg bg-rose-500/90 hover:bg-rose-500">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 md:p-6">
+    <div class="mb-5">
+      <h1 class="text-2xl md:text-3xl font-black">Dashboard Admin</h1>
+      <p class="text-slate-400 text-sm mt-1">UI modern + simple workflow untuk update konten website.</p>
+    </div>
+
+    <div id="flash" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm"></div>
+
+    <div class="grid lg:grid-cols-[240px_1fr] gap-4">
+      <aside class="rounded-2xl border border-white/10 bg-slate-900/60 p-3 h-fit">
+        <button data-tab="berita" class="tab-btn w-full text-left px-3 py-2 rounded-lg bg-sky-500/20 text-sky-200 mb-2">📰 Berita</button>
+        <button data-tab="agenda" class="tab-btn w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 mb-2">📅 Agenda</button>
+        <button data-tab="klasemen" class="tab-btn w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 mb-2">🏆 Klasemen</button>
+        <button data-tab="sponsor" class="tab-btn w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 mb-2">🤝 Sponsor</button>
+        <hr class="my-2 border-white/10">
+        <a href="edit-pengurus.html" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm">Pengurus</a>
+        <a href="edit-atlit.html" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm">Atlet</a>
+        <a href="edit-pelatih.html" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm">Pelatih</a>
+        <a href="edit-klub.html" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm">Klub</a>
+      </aside>
+
+      <section>
+        <div id="tab-berita" class="tab-panel rounded-2xl border border-white/10 bg-slate-900/60 p-4 md:p-5">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <h2 class="text-xl font-bold">Kelola Berita</h2>
+            <button id="refreshBerita" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-sm">Refresh</button>
+          </div>
+          <form id="beritaForm" class="grid md:grid-cols-2 gap-3 mb-4">
+            <input type="hidden" name="id" id="beritaId">
+            <label class="text-sm">Judul
+              <input name="title" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" required>
+            </label>
+            <label class="text-sm">Sumber
+              <input name="source_name" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2">
+            </label>
+            <label class="text-sm md:col-span-2">Link sumber
+              <input name="source_url" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" placeholder="https://...">
+            </label>
+            <label class="text-sm md:col-span-2">Ringkasan
+              <textarea name="excerpt" rows="3" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2"></textarea>
+            </label>
+            <label class="text-sm">Tanggal publish
+              <input type="datetime-local" name="published_at" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2">
+            </label>
+            <label class="text-sm">Banner (jpg/png/webp)
+              <input type="file" name="banner" accept="image/*" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2">
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm md:col-span-2">
+              <input type="checkbox" name="pinned" value="1"> Jadikan pinned
+            </label>
+            <div class="md:col-span-2 flex flex-wrap gap-2">
+              <button class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold" type="submit">Simpan Berita</button>
+              <button id="resetBerita" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15" type="button">Reset Form</button>
+            </div>
+          </form>
+
+          <div class="overflow-auto rounded-xl border border-white/10">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-800/80 text-slate-300">
+                <tr><th class="p-2 text-left">Judul</th><th class="p-2">Pinned</th><th class="p-2">Tanggal</th><th class="p-2 text-right">Aksi</th></tr>
+              </thead>
+              <tbody id="beritaRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-agenda" class="tab-panel hidden rounded-2xl border border-white/10 bg-slate-900/60 p-4 md:p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Kelola Agenda</h2>
+            <button id="addAgenda" class="px-3 py-2 rounded-lg bg-emerald-500/90 hover:bg-emerald-500 text-slate-950 text-sm font-semibold">+ Tambah</button>
+          </div>
+          <div id="agendaRows" class="space-y-2"></div>
+          <button id="saveAgenda" class="mt-4 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold">Simpan Agenda</button>
+        </div>
+
+        <div id="tab-klasemen" class="tab-panel hidden rounded-2xl border border-white/10 bg-slate-900/60 p-4 md:p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Kelola Klasemen</h2>
+            <button id="addKlasemen" class="px-3 py-2 rounded-lg bg-emerald-500/90 hover:bg-emerald-500 text-slate-950 text-sm font-semibold">+ Tambah Klub</button>
+          </div>
+          <div id="klasemenRows" class="space-y-2"></div>
+          <button id="saveKlasemen" class="mt-4 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold">Simpan Klasemen</button>
+        </div>
+
+        <div id="tab-sponsor" class="tab-panel hidden rounded-2xl border border-white/10 bg-slate-900/60 p-4 md:p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Kelola Sponsor</h2>
+            <span class="text-xs text-slate-400">Maks 6 sponsor • ukuran gambar disarankan 300x150</span>
+          </div>
+          <form id="sponsorForm" class="space-y-3"></form>
+          <button id="saveSponsor" class="mt-4 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold">Simpan Sponsor</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script>
+const AUTH='auth_pengurus.php';
+const BERITA_API='berita_api.php';
+const AGENDA_API='agenda_api.php';
+const KLASEMEN_API='klasemen_api.php';
+
+const $ = (s)=>document.querySelector(s);
+const $$ = (s)=>Array.from(document.querySelectorAll(s));
+const flash = $('#flash');
+
+(async function guard(){
+  try{
+    const r = await fetch(AUTH+'?action=me',{credentials:'same-origin'});
+    const j = await r.json();
+    if(!j.admin) return location.href='login_pengurus.html?next='+encodeURIComponent('dashboard.html');
+    $('#who').textContent = j.user || 'admin';
+  }catch{
+    location.href='login_pengurus.html?next='+encodeURIComponent('dashboard.html');
+  }
+})();
+
+$('#btnLogout').addEventListener('click', async ()=>{
+  try{ await fetch(AUTH+'?action=logout',{credentials:'same-origin'});}catch{}
+  location.href='login_pengurus.html?next='+encodeURIComponent('dashboard.html');
+});
+
+function toast(msg, ok=true){
+  flash.textContent = msg;
+  flash.className = 'mb-4 rounded-xl border px-4 py-3 text-sm ' + (ok ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-200' : 'border-rose-500/30 bg-rose-500/15 text-rose-200');
+  flash.classList.remove('hidden');
+}
+
+// Tabs
+$$('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{
+  const target = btn.dataset.tab;
+  $$('.tab-btn').forEach(b=>b.className='tab-btn w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 mb-2');
+  btn.className='tab-btn w-full text-left px-3 py-2 rounded-lg bg-sky-500/20 text-sky-200 mb-2';
+  $$('.tab-panel').forEach(p=>p.classList.add('hidden'));
+  $('#tab-'+target).classList.remove('hidden');
+}));
+
+// ----- BERITA -----
+let beritaCache=[];
+const beritaRows = $('#beritaRows');
+const beritaForm = $('#beritaForm');
+
+async function loadBerita(){
+  const r = await fetch(BERITA_API+'?action=list&limit=100',{cache:'no-store'});
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error||'Gagal load berita');
+  beritaCache = j.items || [];
+  beritaRows.innerHTML = beritaCache.map(it=>`<tr class="border-t border-white/10">
+    <td class="p-2">${esc(it.title||'')}</td>
+    <td class="p-2 text-center">${it.pinned ? '✅' : '-'}</td>
+    <td class="p-2 text-center">${esc((it.published_at||'').toString())}</td>
+    <td class="p-2"><div class="flex justify-end gap-2">
+      <button class="px-2 py-1 rounded bg-amber-500/80 text-slate-900" onclick="editBerita(${it.id})">Edit</button>
+      <button class="px-2 py-1 rounded bg-rose-500/80" onclick="delBerita(${it.id})">Hapus</button>
+    </div></td>
+  </tr>`).join('');
+}
+window.editBerita = function(id){
+  const it = beritaCache.find(x=>Number(x.id)===Number(id));
+  if(!it) return;
+  beritaForm.id.value = it.id || '';
+  beritaForm.title.value = it.title || '';
+  beritaForm.excerpt.value = it.excerpt || '';
+  beritaForm.source_url.value = it.source_url || '';
+  beritaForm.source_name.value = it.source_name || '';
+  beritaForm.published_at.value = (it.published_at||'').replace(' ','T').slice(0,16);
+  beritaForm.pinned.checked = !!Number(it.pinned||0);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+window.delBerita = async function(id){
+  if(!confirm('Hapus berita ini?')) return;
+  const fd = new FormData(); fd.append('action','delete'); fd.append('id',String(id));
+  const r = await fetch(BERITA_API,{method:'POST',body:fd,credentials:'same-origin'});
+  const j = await r.json();
+  if(!r.ok || !j.ok) return toast(j.error||'Gagal hapus berita', false);
+  toast('Berita berhasil dihapus');
+  loadBerita();
+}
+
+beritaForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(beritaForm);
+  const isEdit = !!fd.get('id');
+  fd.append('action', isEdit ? 'update' : 'create');
+  if(!fd.get('published_at')) fd.set('published_at', new Date().toISOString().slice(0,19));
+
+  const r = await fetch(BERITA_API,{method:'POST',body:fd,credentials:'same-origin'});
+  const t = await r.text();
+  let j={ok:false,error:'Response invalid'}; try{ j=JSON.parse(t);}catch{}
+  if(!r.ok || !j.ok) return toast(j.error||'Gagal simpan berita', false);
+
+  toast(isEdit ? 'Berita berhasil diupdate' : 'Berita berhasil ditambahkan');
+  beritaForm.reset();
+  beritaForm.id.value='';
+  loadBerita();
+});
+$('#resetBerita').addEventListener('click', ()=>{ beritaForm.reset(); beritaForm.id.value=''; });
+$('#refreshBerita').addEventListener('click', ()=>loadBerita());
+
+// ----- AGENDA -----
+const agendaRows = $('#agendaRows');
+function agendaRow(it={periode:'',kegiatan:''}){
+  const row = document.createElement('div');
+  row.className='grid md:grid-cols-[220px_1fr_auto] gap-2';
+  row.innerHTML=`
+    <input class="ag-periode rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" placeholder="Periode" value="${escAttr(it.periode||'')}">
+    <input class="ag-kegiatan rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" placeholder="Kegiatan" value="${escAttr(it.kegiatan||'')}">
+    <button class="ag-del px-3 py-2 rounded-lg bg-rose-500/80">Hapus</button>`;
+  row.querySelector('.ag-del').addEventListener('click',()=>row.remove());
+  return row;
+}
+async function loadAgenda(){
+  const r = await fetch(AGENDA_API+'?action=list',{cache:'no-store'});
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error||'Gagal load agenda');
+  agendaRows.innerHTML='';
+  (j.items||[]).forEach(it=>agendaRows.appendChild(agendaRow(it)));
+  if(!(j.items||[]).length) agendaRows.appendChild(agendaRow());
+}
+$('#addAgenda').addEventListener('click',()=>agendaRows.appendChild(agendaRow()));
+$('#saveAgenda').addEventListener('click', async ()=>{
+  const items = Array.from(agendaRows.children).map(r=>(
+    {periode:r.querySelector('.ag-periode').value.trim(), kegiatan:r.querySelector('.ag-kegiatan').value.trim()}
+  ));
+  const res = await fetch(AGENDA_API+'?action=save',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
+  const j = await res.json();
+  if(!res.ok || !j.ok) return toast(j.error||'Gagal simpan agenda', false);
+  toast('Agenda berhasil disimpan');
+});
+
+// ----- KLASEMEN -----
+const klasemenRows = $('#klasemenRows');
+function klasemenRow(it={klub:'',main:0,menang:0,poin:0}){
+  const row = document.createElement('div');
+  row.className='grid md:grid-cols-[1fr_90px_90px_90px_auto] gap-2';
+  row.innerHTML=`
+    <input class="k-klub rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" placeholder="Nama klub" value="${escAttr(it.klub||'')}">
+    <input type="number" class="k-main rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" value="${Number(it.main||0)}">
+    <input type="number" class="k-menang rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" value="${Number(it.menang||0)}">
+    <input type="number" class="k-poin rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" value="${Number(it.poin||0)}">
+    <button class="k-del px-3 py-2 rounded-lg bg-rose-500/80">Hapus</button>`;
+  row.querySelector('.k-del').addEventListener('click',()=>row.remove());
+  return row;
+}
+async function loadKlasemen(){
+  const r = await fetch(KLASEMEN_API+'?action=list',{cache:'no-store'});
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error||'Gagal load klasemen');
+  klasemenRows.innerHTML='';
+  (j.items||[]).forEach(it=>klasemenRows.appendChild(klasemenRow(it)));
+  if(!(j.items||[]).length) klasemenRows.appendChild(klasemenRow());
+}
+$('#addKlasemen').addEventListener('click',()=>klasemenRows.appendChild(klasemenRow()));
+$('#saveKlasemen').addEventListener('click', async ()=>{
+  const items = Array.from(klasemenRows.children).map(r=>(
+    {
+      klub:r.querySelector('.k-klub').value.trim(),
+      main:Number(r.querySelector('.k-main').value||0),
+      menang:Number(r.querySelector('.k-menang').value||0),
+      poin:Number(r.querySelector('.k-poin').value||0)
+    }
+  ));
+  const res = await fetch(KLASEMEN_API+'?action=save',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
+  const j = await res.json();
+  if(!res.ok || !j.ok) return toast(j.error||'Gagal simpan klasemen', false);
+  toast('Klasemen berhasil disimpan');
+});
+
+// ----- SPONSOR -----
+const sponsorForm = $('#sponsorForm');
+function sponsorCard(i, it={name:'', image:'', url:''}) {
+  return `<div class="rounded-xl border border-white/10 p-3 grid md:grid-cols-[1fr_1fr_1fr] gap-2">
+    <label class="text-sm">Nama Sponsor
+      <input name="name_${i}" value="${escAttr(it.name||'')}" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" placeholder="Nama sponsor">
+    </label>
+    <label class="text-sm">Link Sponsor (opsional)
+      <input name="url_${i}" value="${escAttr(it.url||'')}" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2" placeholder="https://...">
+    </label>
+    <label class="text-sm">Logo Sponsor
+      <input type="hidden" name="old_image_${i}" value="${escAttr(it.image||'')}">
+      <input type="file" name="image_${i}" accept="image/*" class="mt-1 w-full rounded-lg bg-slate-950/70 border border-white/10 px-3 py-2">
+    </label>
+    <div class="md:col-span-3 text-xs text-slate-400">${it.image ? `Logo saat ini: <code>${esc(it.image)}</code>` : 'Belum ada logo tersimpan'}</div>
+  </div>`;
+}
+async function loadSponsor(){
+  const r = await fetch(SPONSOR_API+'?action=list',{cache:'no-store'});
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error||'Gagal load sponsor');
+  const items = Array.isArray(j.items) ? j.items : [];
+  const merged = Array.from({length:6}, (_,i)=>items[i] || {name:'',image:'',url:''});
+  sponsorForm.innerHTML = merged.map((it,i)=>sponsorCard(i,it)).join('');
+}
+$('#saveSponsor').addEventListener('click', async ()=>{
+  const fd = new FormData(sponsorForm);
+  fd.append('action','save');
+  const r = await fetch(SPONSOR_API,{method:'POST',body:fd,credentials:'same-origin'});
+  const t = await r.text();
+  let j={ok:false,error:'Response invalid'}; try{ j=JSON.parse(t);}catch{}
+  if(!r.ok || !j.ok) return toast(j.error||'Gagal simpan sponsor', false);
+  toast('Sponsor berhasil disimpan');
+  loadSponsor();
+});
+
+function esc(v){ return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function escAttr(v){ return esc(v).replaceAll('"','&quot;'); }
+
+(async ()=>{
+  try{
+    await Promise.all([loadBerita(), loadAgenda(), loadKlasemen()]);
+  }catch(e){
+    toast(e.message || 'Gagal load dashboard', false);
+  }
+})();
+</script>
+</body>
+</html>

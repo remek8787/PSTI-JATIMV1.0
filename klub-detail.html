@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Detail Klub — PSTI Jatim</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+  <header class="header overlay">
+    <div class="container" style="display:flex;align-items:center;gap:12px">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.png" alt="Logo PSTI Jatim"><span>PSTI JATIM</span>
+      </a>
+      <nav class="nav" style="margin-left:auto;display:flex;gap:8px">
+        <a class="btn btn-small btn-ghost" href="klub.html">Kembali ke Daftar Klub</a>
+        <a class="btn btn-small" id="btnBack">Kembali</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="max-width:980px;margin:22px auto">
+    <div id="wrap" class="profile-card">
+      <div>
+        <!-- ganti id=logo -> foto, sesuai API baru -->
+        <img id="foto" src="" alt="" style="width:100%;max-width:280px;border-radius:12px">
+      </div>
+      <div>
+        <h2 id="nama" style="margin:0 0 4px">Memuat…</h2>
+        <div class="muted" id="kabupaten"></div>
+        <div class="muted" id="pemilik" style="margin-top:4px"></div>
+        <div class="muted" id="telepon" style="margin-top:4px"></div>
+        <div class="muted" id="alamat" style="margin-top:4px"></div>
+        <div class="mt" id="igBox"></div>
+      </div>
+    </div>
+
+    <div id="msg" class="muted" style="margin-top:10px"></div>
+  </main>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const btnBack = document.getElementById('btnBack');
+    const msg = document.getElementById('msg');
+
+    btnBack.addEventListener('click', ()=>{
+      try{
+        if (document.referrer && new URL(document.referrer).origin === location.origin) history.back();
+        else location.href='klub.html';
+      }catch(_){ location.href='klub.html'; }
+    });
+
+    if(!id){
+      document.getElementById('nama').textContent = 'ID tidak ditemukan';
+      return;
+    }
+
+    const igLink = (s) => {
+      if(!s) return '';
+      const u = s.trim();
+      if(u.startsWith('@')) return 'https://instagram.com/'+u.slice(1);
+      if(/^https?:\/\//i.test(u)) return u;
+      return 'https://instagram.com/'+u;
+    };
+
+    try{
+      const r = await fetch('klub_api.php?action=get&id='+encodeURIComponent(id));
+      const j = await r.json();
+      if(!j.ok){ document.getElementById('nama').textContent='Data tidak ditemukan'; return; }
+      const it = j.item;
+
+      // sesuai field API baru
+      document.getElementById('foto').src = it.foto || 'assets/contoh.jpg';
+      document.getElementById('foto').alt = it.nama || '';
+
+      document.getElementById('nama').textContent      = it.nama || '-';
+      document.getElementById('kabupaten').textContent = it.kabupaten ? ('Kabupaten/Kota: '+it.kabupaten) : '';
+      document.getElementById('pemilik').textContent   = it.pemilik ? ('Pemilik: '+it.pemilik) : '';
+      document.getElementById('telepon').textContent   = it.telepon ? ('Telepon: '+it.telepon) : '';
+      document.getElementById('alamat').textContent    = it.alamat ? ('Alamat: '+it.alamat) : '';
+
+      const igBox = document.getElementById('igBox');
+      if(it.instagram){
+        igBox.innerHTML = `<a class="btn" target="_blank" rel="noopener" href="${igLink(it.instagram)}">Kunjungi Instagram</a>`;
+      } else {
+        igBox.innerHTML = '';
+      }
+    }catch(e){
+      document.getElementById('nama').textContent = 'Gagal memuat';
+      msg.style.color = '#ffb3b3';
+      msg.textContent = e.message || String(e);
+    }
+  });
+  </script>
+</body>
+</html>

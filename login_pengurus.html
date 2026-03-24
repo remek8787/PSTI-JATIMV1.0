@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login Pengurus — PSTI Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4">
+  <div class="w-full max-w-sm bg-slate-800/70 border border-white/10 rounded-2xl p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <img src="assets/logo.png" class="h-10 rounded" alt="">
+      <div class="text-xl font-extrabold">PSTI JATIM</div>
+    </div>
+
+    <h1 class="text-lg font-bold mb-3">Login Pengurus</h1>
+
+    <form id="f" class="space-y-3">
+      <label class="block text-sm">Username
+        <input id="username" name="username" class="mt-1 w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
+      </label>
+      <label class="block text-sm">Password
+        <input id="password" name="password" type="password" class="mt-1 w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
+      </label>
+
+      <button id="btn" class="w-full mt-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500">Masuk</button>
+      <div id="msg" class="text-sm mt-2 text-slate-300"></div>
+    </form>
+
+    <div class="mt-4 text-xs text-slate-400">
+      Tip: default <b>admin_pengurus / pstiPengurus123</b> (ubah di <code>auth_pengurus.php</code>)
+    </div>
+  </div>
+
+  <script>
+  const f = document.getElementById('f');
+  const msg = document.getElementById('msg');
+  const next = new URLSearchParams(location.search).get('next') || 'dashboard.html';
+
+  f.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    msg.textContent = 'Memeriksa...';
+    const fd = new FormData(f);
+    fd.append('action','login');
+    try{
+      const res  = await fetch('auth_pengurus.php', {method:'POST', body:fd});
+      const text = await res.text();
+      let j; try{ j = JSON.parse(text); }catch{ throw new Error((text||'').slice(0,200) || 'Response bukan JSON'); }
+      if(!res.ok || !j.ok) throw new Error(j.error || ('HTTP '+res.status));
+      location.href = next;
+    }catch(err){
+      msg.className = 'text-sm text-rose-400';
+      msg.textContent = err.message;
+    }
+  });
+  </script>
+</body>
+</html>

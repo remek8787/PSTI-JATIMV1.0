@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login Admin — PSTI Jatim</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="header overlay">
+  <div class="container">
+    <a class="brand" href="index.html"><img src="assets/logo.jpeg" alt=""> <span>PSTI JATIM</span></a>
+  </div>
+</header>
+
+<main class="container" style="max-width:420px;margin:24px auto">
+  <h1 style="margin:10px 0 14px">Login Admin</h1>
+  <form id="loginForm" class="form-card">
+    <label>Username
+      <input type="text" name="username" required autocomplete="username">
+    </label>
+    <label>Password
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <div class="cta-group" style="margin-top:10px">
+      <button class="btn" type="submit">Masuk</button>
+      <a class="btn btn-ghost" href="index.html">Kembali</a>
+    </div>
+    <div id="msg" class="muted" style="margin-top:8px"></div>
+  </form>
+</main>
+
+<script>
+const f = document.getElementById('loginForm');
+const msg = document.getElementById('msg');
+const next = new URLSearchParams(location.search).get('next') || 'edit-pengurus.html';
+
+f.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  msg.textContent = 'Memeriksa...';
+  const fd = new FormData(f);
+  fd.append('action','login');
+  try{
+    const r = await fetch('auth_api.php', {method:'POST', body:fd});
+    const j = await r.json();
+    if(!r.ok || !j.ok){ throw new Error(j.error || 'Gagal login'); }
+    location.href = next;
+  }catch(err){
+    msg.style.color = '#ffb3b3';
+    msg.textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>

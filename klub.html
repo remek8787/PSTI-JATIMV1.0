@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daftar PSTI & Klub — PSTI Jatim</title>
+  <link href="styles.css" rel="stylesheet">
+  <style>
+    .kab-head{ margin:18px 0 10px; font-weight:800; font-size:1.6rem; }
+    .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    @media (max-width:980px){ .cards{ grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:640px){ .cards{ grid-template-columns:1fr; } }
+    .club-card{ background:var(--card); border:1px solid #ffffff14; border-radius:12px; padding:12px; }
+    .club-photo{ width:100%; height:160px; object-fit:cover; border-radius:10px; background:#0b2030; display:block; }
+    .club-title{ font-weight:800; margin:8px 0 6px; }
+    .club-meta{ color:var(--muted); font-size:.95rem; line-height:1.4 }
+    .toolbar{ display:flex; gap:10px; align-items:center; margin:12px 0 18px }
+    .toolbar input, .toolbar select{
+      background:#0c2030; border:1px solid #ffffff1f; color:var(--text);
+      border-radius:10px; padding:10px 12px; outline:none;
+    }
+    .toolbar input:focus, .toolbar select:focus{ border-color:#7cc1ff; box-shadow:0 0 0 3px #7cc1ff22; }
+    .placeholder{
+      display:flex; align-items:center; justify-content:center;
+      color:#a6c3d9; border:1px dashed #ffffff2e; border-radius:10px;
+      width:100%; height:160px; background:#0b2030;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR (include dari navbar.html agar konsisten) -->
+  <div id="navbar"></div>
+
+  <main class="container" style="margin:22px auto">
+    <h1 style="margin:0 0 10px;font-weight:800;font-size:2rem">Daftar Klub PSTI Jawa Timur</h1>
+
+    <!-- Toolbar: search + filter kabupaten -->
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Cari nama klub / kabupaten / pemilik / IG / telp…" style="flex:1">
+      <select id="kab" style="min-width:220px">
+        <option value="">Semua Kabupaten/Kota</option>
+      </select>
+      <button id="btnBack" class="btn btn-small btn-ghost">Kembali</button>
+    </div>
+
+    <div id="wrap"></div>
+    <div id="stat" class="muted" style="margin-top:10px"></div>
+  </main>
+
+  <script>
+  // ==== Load NAVBAR dari file terpisah + inisialisasi interaksi ====
+  (function(){
+    const mount = document.getElementById('navbar');
+    if (!mount) return;
+    fetch('navbar.html')
+      .then(r => r.text())
+      .then(html => {
+        mount.innerHTML = html;
+
+        // Tandai link aktif ke 'PSTI & Klub'
+        try {
+          const links = mount.querySelectorAll('a[href]');
+          links.forEach(a => {
+            if (a.getAttribute('href') === 'klub.html') a.classList.add('active');
+          });
+        } catch(e) {}
+
+        // Toggle menu & dropdown mobile (sesuai struktur navbar.html)
+        const btn  = mount.querySelector('#btnMenu');
+        const menu = mount.querySelector('#mainMenu');
+        if (btn && menu){
+          btn.addEventListener('click', () => {
+            const open = menu.classList.toggle('show');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          });
+
+          // Tutup setelah klik link
+          menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.remove('show')));
+
+          // Dropdown via tap (mobile)
+          menu.querySelectorAll('.has-dropdown > a').forEach(a => {
+            a.addEventListener('click', (e) => {
+              if (window.matchMedia('(max-width: 760px)').matches) {
+                e.preventDefault();
+                const drop = a.parentElement.querySelector('.dropdown');
+                if (drop) {
+                  drop.classList.toggle('show');
+                  a.setAttribute('aria-expanded', drop.classList.contains('show') ? 'true':'false');
+                }
+              }
+            });
+          });
+
+          // Bersihkan state saat balik ke desktop
+          window.addEventListener('resize', () => {
+            if (!window.matchMedia('(max-width: 760px)').matches) {
+              menu.classList.remove('show');
+              menu.querySelectorAll('.dropdown.show').forEach(d => d.classList.remove('show'));
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+      })
+      .catch(err => {
+        mount.innerHTML = '<header class="header"><div class="container"><a class="brand" href="index.html"><span>PSTI JATIM</span></a></div></header>';
+        console.error('Gagal memuat navbar:', err);
+      });
+  })();
+
+  // ==== Logika halaman Klub (search + filter + render) ====
+  (function(){
+    const $ = id => document.getElementById(id);
+    const API = 'klub_api.php';
+    const wrap = $('wrap'), stat = $('stat');
+
+    $('btnBack')?.addEventListener('click', ()=>{
+      try{
+        if (document.referrer && new URL(document.referrer).origin === location.origin) history.back();
+        else location.href='index.html';
+      }catch(_){ location.href='index.html'; }
+    });
+
+    // --- Normalisasi kabupaten/kota -> format kanonik (sama seperti versi awal)
+    function canonicalKab(s){
+      if(!s) return 'Lainnya';
+      let t = String(s).trim();
+      t = t.replace(/[,:]/g,' ').replace(/\s+/g,' ').trim();
+      const reKab  = /^(kab(?:\.|upaten)?)\s+/i;
+      const reKota = /^(kota|kotamadya|kodya)\s+/i;
+      if (reKab.test(t))      t = 'Kabupaten ' + t.replace(reKab,'');
+      else if (reKota.test(t))t = 'Kota ' + t.replace(reKota,'');
+      else                    t = 'Kabupaten ' + t; // default
+      t = t.toLowerCase().split(' ').map(w=> w? w[0].toUpperCase()+w.slice(1): w).join(' ');
+      return t;
+    }
+
+    function groupByKab(items){
+      const map = {};
+      items.forEach(it=>{
+        const key = canonicalKab(it.kabupaten || '');
+        if(!map[key]) map[key] = [];
+        map[key].push(it);
+      });
+      return Object.keys(map)
+        .sort((a,b)=> a.localeCompare(b))
+        .map(k => ({ kabupaten:k, items: map[k] }));
+    }
+
+    function render(groups){
+      wrap.innerHTML = '';
+      if (!groups.length){
+        wrap.innerHTML = '<div class="muted">Tidak ada data.</div>';
+        return;
+      }
+      groups.forEach(g=>{
+        const h = document.createElement('h2');
+        h.className = 'kab-head';
+        h.textContent = `${g.kabupaten} (${g.items.length})`;
+        wrap.appendChild(h);
+
+        const grid = document.createElement('div');
+        grid.className = 'cards';
+        g.items.forEach(it=>{
+          const img = it.foto
+            ? `<img src="${it.foto}" class="club-photo" alt="">`
+            : `<div class="placeholder">Tanpa Logo</div>`;
+          const card = document.createElement('div');
+          card.className = 'club-card';
+          card.innerHTML = `
+            ${img}
+            <div class="club-title">${it.nama||'-'}</div>
+            <div class="club-meta">
+              ${canonicalKab(it.kabupaten||'')}<br>
+              ${it.pemilik? 'Pemilik: '+it.pemilik+'<br>':''}
+              ${it.telepon? it.telepon+'<br>':''}
+              ${it.instagram? it.instagram+'<br>':''}
+              ${it.alamat? it.alamat:''}
+            </div>
+            <div style="margin-top:8px">
+              <a class="btn btn-small" href="klub-detail.html?id=${it.id}">Detail</a>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        wrap.appendChild(grid);
+      });
+    }
+
+    function buildKabDropdown(items){
+      const kabSel = $('kab'); if(!kabSel) return;
+      const set = new Set(items.map(it=> canonicalKab(it.kabupaten)));
+      kabSel.innerHTML = '<option value="">Semua Kabupaten/Kota</option>' +
+        Array.from(set).sort((a,b)=>a.localeCompare(b)).map(k=>`<option value="${k}">${k}</option>`).join('');
+    }
+
+    let ALL = [];
+    function applyFilter(){
+      const q = ($('q')?.value || '').trim().toLowerCase();
+      const fk = ($('kab')?.value || '');
+      let items = ALL.slice();
+
+      if (fk) items = items.filter(it => canonicalKab(it.kabupaten) === fk);
+      if (q){
+        items = items.filter(it=>{
+          const hay = [it.nama,it.kabupaten,it.pemilik,it.alamat,it.instagram,it.telepon].join(' ').toLowerCase();
+          return hay.includes(q);
+        });
+      }
+      render(groupByKab(items));
+    }
+
+    // load
+    fetch(API+'?action=list')
+      .then(r=>r.json())
+      .then(j=>{
+        if(!j.ok) throw new Error(j.error||'HTTP');
+        ALL = j.items || [];
+        buildKabDropdown(ALL);
+        applyFilter();
+        stat.textContent = '';
+      })
+      .catch(err=>{
+        stat.style.color = '#ffb3b3';
+        stat.textContent = 'Gagal memuat klub: '+err.message;
+      });
+
+    $('q')?.addEventListener('input', applyFilter);
+    $('kab')?.addEventListener('change', applyFilter);
+  })();
+  </script>
+</body>
+</html>

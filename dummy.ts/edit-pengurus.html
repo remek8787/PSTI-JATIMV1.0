@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Pengurus — PSTI Jatim</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header overlay">
+    <div class="container" style="display:flex;align-items:center;gap:12px">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.jpeg" alt="Logo PSTI Jatim">
+        <span>PSTI JATIM</span>
+      </a>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span class="muted">Login sebagai: <strong id="who">-</strong></span>
+        <button class="btn btn-small btn-ghost" id="btnLogout" type="button">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width:960px;margin:22px auto">
+    <h1 style="margin:12px 0">Admin Pengurus</h1>
+
+    <!-- FORM -->
+    <form id="f" class="form-card" enctype="multipart/form-data">
+      <input type="hidden" name="id" id="id">
+
+      <div class="grid2">
+        <label>Nama <span class="req">*</span>
+          <input type="text" name="nama" id="nama" required>
+        </label>
+        <label>No. Telepon
+          <input type="text" name="telepon" id="telepon">
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label>Alamat
+          <input type="text" name="alamat" id="alamat">
+        </label>
+        <label>License
+          <input type="text" name="license" id="license" placeholder="mis. C-1 / Pelatih Muda">
+        </label>
+      </div>
+
+      <!-- JABATAN (BARU) -->
+      <label>Jabatan
+        <input type="text" name="jabatan" id="jabatan" placeholder="Ketua Umum, Sekretaris, Bendahara, dsb.">
+      </label>
+
+      <label>Pengalaman
+        <textarea name="pengalaman" id="pengalaman" rows="3" placeholder="Pisahkan dengan baris baru"></textarea>
+      </label>
+      <label>Riwayat Pendidikan
+        <textarea name="pendidikan" id="pendidikan" rows="3"></textarea>
+      </label>
+      <label>Sertifikat
+        <textarea name="sertifikat" id="sertifikat" rows="3" placeholder="mis. Wasit Level-1 (2023)"></textarea>
+      </label>
+
+      <div class="grid2">
+        <label>Foto (opsional)
+          <input type="file" name="foto" id="foto" accept=".jpg,.jpeg,.png,.webp">
+        </label>
+        <div>
+          <img id="preview" src="" alt="" style="max-width:160px;border-radius:10px;display:none">
+        </div>
+      </div>
+
+      <div class="cta-group" style="margin-top:10px">
+        <button class="btn" type="submit" id="btnSave">Simpan / Perbarui</button>
+        <button class="btn btn-ghost" type="button" id="btnReset">Reset Form</button>
+      </div>
+      <div id="stat" class="muted" style="margin-top:8px"></div>
+    </form>
+
+    <hr style="border:0;border-top:1px solid #ffffff1a;margin:22px 0">
+
+    <!-- TABEL -->
+    <div class="card">
+      <h3 style="margin:0 0 8px">Daftar Pengurus</h3>
+      <div class="table-wrap" style="overflow:auto">
+        <table class="table" id="tbl">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nama</th>
+              <th>License</th>
+              <th>Telepon</th>
+              <th style="width:240px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- JS -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const API = 'pengurus_api.php';
+    const $ = id => document.getElementById(id);
+    const f = $('f'), stat = $('stat'), preview = $('preview');
+
+    const info  = t => { stat.style.color = '#9be598'; stat.textContent = t; };
+    const error = t => { stat.style.color = '#ffb3b3'; stat.textContent = t; };
+
+    // Guard: cek auth_pengurus dulu; kalau gagal, fallback ke auth_api lama
+    async function guard(){
+      async function check(url){
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const j = await res.json().catch(()=>null);
+        return j && j.ok && j.admin ? j : null;
+      }
+      try{
+        let me = await check('auth_pengurus.php?action=me');
+        if (!me)  me = await check('auth_api.php?action=me');
+        if (!me){
+          // Prioritaskan login_pengurus kalau ada
+          const next = encodeURIComponent('edit-pengurus.html');
+          if (await fetch('auth_pengurus.php?action=me').then(r=>r.ok).catch(()=>false)) {
+            location.href = 'login_pengurus.html?next=' + next;
+          } else {
+            location.href = 'login.html?next=' + next;
+          }
+          return false;
+        }
+        $('who').textContent = me.user || 'admin';
+        return true;
+      }catch(e){ error('Gagal cek sesi: '+e.message); return false; }
+    }
+
+    function renderRow(it){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${it.foto? `<img src="${it.foto}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">` : '-'}</td>
+        <td>
+          <strong>${it.nama||''}</strong>
+          <div class="muted">${(it.jabatan||'')}${it.alamat ? (it.jabatan ? ' — ' : '') + it.alamat : ''}</div>
+        </td>
+        <td>${it.license||''}</td>
+        <td>${it.telepon||''}</td>
+        <td>
+          <button class="btn btn-small" data-act="edit" data-id="${it.id}">Edit</button>
+          <button class="btn btn-small btn-ghost" data-act="del" data-id="${it.id}">Hapus</button>
+          <a class="btn btn-small" href="pengurus-detail.html?id=${it.id}" target="_blank">View</a>
+        </td>`;
+      return tr;
+    }
+
+    function loadList(){
+      fetch(API+'?action=list').then(r=>r.json()).then(j=>{
+        const tb = document.querySelector('#tbl tbody'); tb.innerHTML='';
+        (j.items||[]).forEach(it=> tb.appendChild(renderRow(it)));
+        if(!j.items || !j.items.length){
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td colspan="5" class="muted">Belum ada data.</td>`;
+          tb.appendChild(tr);
+        }
+      }).catch(e=> error('Gagal memuat list: '+e.message));
+    }
+
+    f.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fd = new FormData(f);
+      fd.append('action', $('id').value ? 'update' : 'create');
+      try{
+        $('btnSave').disabled = true; info('Menyimpan...');
+        const res  = await fetch(API, { method:'POST', body: fd });
+        const text = await res.text();
+        let j; try { j = JSON.parse(text); }
+        catch { throw new Error((text||'').slice(0,260) || 'Response bukan JSON'); }
+        if(!res.ok || !j.ok) throw new Error(j.error || ('HTTP '+res.status));
+        info('Tersimpan ✔');
+        f.reset(); $('id').value=''; preview.style.display='none';
+        loadList();
+      }catch(err){ error(err.message); }
+      finally{ $('btnSave').disabled = false; }
+    });
+
+    $('btnReset').addEventListener('click', ()=>{
+      f.reset(); $('id').value=''; preview.style.display='none'; stat.textContent='';
+    });
+
+    document.querySelector('#tbl').addEventListener('click', async (e)=>{
+      const btn = e.target.closest('button'); if(!btn) return;
+      const id  = btn.dataset.id;
+      if (btn.dataset.act==='edit'){
+        const j = await (await fetch(API+'?action=get&id='+encodeURIComponent(id))).json();
+        if(!j.ok) return error('Tidak ditemukan');
+        const it = j.item;
+        ['id','nama','telepon','alamat','license','jabatan','pengalaman','pendidikan','sertifikat'].forEach(k=> $(k).value = it[k]||'');
+        if (it.foto){ preview.src = it.foto; preview.style.display='block'; } else preview.style.display='none';
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+      if (btn.dataset.act==='del'){
+        if(!confirm('Hapus data ini?')) return;
+        const fd = new FormData(); fd.append('action','delete'); fd.append('id',id);
+        const res = await fetch(API, {method:'POST', body:fd});
+        const text = await res.text();
+        let j; try{ j=JSON.parse(text); }catch{ return error((text||'').slice(0,260)); }
+        if(!res.ok || !j.ok) return error(j.error||('HTTP '+res.status));
+        loadList(); info('Terhapus ✔');
+      }
+    });
+
+    $('foto').addEventListener('change', e=>{
+      const file = e.target.files[0];
+      if(file){ preview.src = URL.createObjectURL(file); preview.style.display='block'; }
+    });
+
+    $('btnLogout').addEventListener('click', async ()=>{
+      // coba logout pengurus dulu, lalu fallback ke auth lama
+      try{ await fetch('auth_pengurus.php?action=logout'); }catch(_){}
+      try{ await fetch('auth_api.php?action=logout'); }catch(_){}
+      // arahkan ke login pengurus (kalau ada), kalau tidak ke login lama
+      fetch('auth_pengurus.php?action=me').then(r=>{
+        location.href = r.ok ? 'login_pengurus.html' : 'login.html';
+      }).catch(()=>{ location.href='login.html'; });
+    });
+
+    guard().then(ok => { if(ok) loadList(); });
+  });
+  </script>
+</body>
+</html>

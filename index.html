@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PSTI Jatim — Persatuan Sepak Takraw Jawa Timur</title>
+  <meta name="description" content="Website resmi PSTI Jawa Timur: berita, agenda, data anggota, dan kompetisi." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a2f0b5e6a2.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+
+  <!-- TOPBAR -->
+  <div class="topbar" role="banner">
+    <div class="container topbar-inner">
+      <div class="left">
+        <span id="hariTanggal" aria-live="polite"></span>
+        <span class="live" title="Siaran langsung"><i class="fa-solid fa-circle-play"></i> LIVE</span>
+      </div>
+      <div class="right social">
+        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#" aria-label="X / Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR (inject dari navbar.html) -->
+  <div id="navbar"></div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div class="hero-content">
+        <span class="tag">PSTI JAWA TIMUR</span>
+        <h1>Bangun Prestasi <span class="text-gradient">Sepak Takraw</span> Lebih Kuat</h1>
+        <p>Portal resmi Persatuan Sepak Takraw Jawa Timur untuk informasi kompetisi, pembinaan atlet, dan aktivitas organisasi.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="berita.html">Lihat Berita</a>
+          <a class="btn btn-ghost" href="#agenda">Agenda Kegiatan</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <h3>Highlight</h3>
+        <ul>
+          <li><i class="fa-solid fa-bolt"></i> Update berita real-time</li>
+          <li><i class="fa-solid fa-trophy"></i> Informasi turnamen & klasemen</li>
+          <li><i class="fa-solid fa-users"></i> Data pengurus, pelatih, dan atlet</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker-wrap" aria-label="ticker pengumuman">
+    <div class="container ticker">
+      <div class="ticker-label">Pengumuman</div>
+      <div class="ticker-track">
+        <p>🔥 SELAMAT DATANG DI WEBSITE PSTI JAWA TIMUR • SIAP MENUJU PRESTASI NASIONAL • DUKUNG ATLET JATIM 🔥</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="container layout">
+    <section class="main-column" aria-label="Berita terbaru">
+      <div class="section-head">
+        <h2>Berita Terbaru</h2>
+        <a href="berita.html">Lihat semua <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      <section class="grid-berita" id="gridBerita">
+        <div class="card" id="homeNewsMsg">Memuat berita…</div>
+      </section>
+    </section>
+
+    <aside class="sidebar" aria-label="Informasi samping">
+      <div class="card" id="agenda">
+        <div class="card-head">
+          <h3>Agenda Kegiatan</h3>
+        </div>
+        <ul id="jadwalList" class="agenda-list">
+          <li><strong>Agustus–September 2025</strong><span>Pelantikan Pengurus & Raker PSTI Jatim 2025</span></li>
+          <li><strong>Januari 2026</strong><span>Piala Ketua Umum PSTI Jatim</span></li>
+          <li><strong>Maret 2026</strong><span>Coaching Clinic Pelatih & Wasit</span></li>
+          <li><strong>Juni 2026</strong><span>Kejurprov (Kabupaten Malang)</span></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Klasemen Turnamen</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="tabelKlasemen">
+            <thead><tr><th>Klub</th><th>M</th><th>Menang</th><th>Pts</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card sponsors">
+        <div class="card-head"><h3>Sponsor</h3></div>
+        <div class="logos" id="sponsorList">
+          <img src="assets/SMK.gif" alt="Sponsor 1">
+          <img src="assets/contoh.jpg" alt="Sponsor 2">
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <div class="container fgrid">
+      <div>
+        <h4 id="tentang">Tentang PSTI Jatim</h4>
+        <p>Organisasi resmi pembinaan dan kompetisi olahraga Sepak Takraw di Jawa Timur.</p>
+      </div>
+      <div>
+        <h4>Kontak</h4>
+        <p>Jln. Jagir Sidoresmo Surabaya<br>Email: sepaktakrawjatim@gmail.com</p>
+      </div>
+      <div>
+        <h4>Ikuti Kami</h4>
+        <div class="social">
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" aria-label="X / Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="copy">© <span id="year"></span> PSTI Jatim • Built for Next Generation</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

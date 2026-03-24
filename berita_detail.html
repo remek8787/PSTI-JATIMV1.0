@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Detail Berita — PSTI Jatim</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .detail-container { max-width: 800px; margin: 30px auto; padding: 20px; background: var(--card,#0f2536); border-radius: 12px; }
+    .detail-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; }
+    .detail-meta { color: #aaa; font-size: .9rem; margin-bottom: 20px; }
+    .detail-banner { width: 100%; max-height: 350px; object-fit: cover; border-radius: 10px; margin-bottom: 20px; }
+    .detail-content { line-height: 1.6; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <header class="header overlay">
+    <div class="container" style="display:flex;align-items:center;gap:12px">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.jpeg" alt="Logo PSTI Jatim"><span>PSTI JATIM</span>
+      </a>
+      <nav class="nav" style="margin-left:auto">
+        <a class="btn btn-small btn-ghost" href="berita.html">← Kembali</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="detail" class="detail-container">Memuat berita…</div>
+  </main>
+
+  <script>
+    (async function(){
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      if(!id){ document.getElementById('detail').textContent = 'ID berita tidak ditemukan'; return; }
+
+      try{
+        const r = await fetch(`berita_api.php?action=get&id=${encodeURIComponent(id)}`);
+        const j = await r.json();
+        if(!j.ok) throw new Error(j.error||'Gagal ambil data');
+        const it = j.item;
+
+        document.getElementById('detail').innerHTML = `
+          ${it.banner? `<img src="${it.banner}" class="detail-banner" alt="">` : ''}
+          <div class="detail-title">${it.title||'(Tanpa judul)'}</div>
+          <div class="detail-meta">
+            ${it.source_name||''}
+            ${it.published_at? ' • '+new Date(it.published_at.replace(' ','T')).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : ''}
+          </div>
+          <div class="detail-content">${it.excerpt||''}</div>
+        `;
+      }catch(e){
+        document.getElementById('detail').textContent = 'Error: '+e.message;
+      }
+    })();
+  </script>
+</body>
+</html>

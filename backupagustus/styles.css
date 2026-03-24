@@ -1,0 +1,254 @@
+:root{
+    --green:#2196f3;         /* header/nav biru muda */
+    --green-dark:#1976d2;    /* topbar biru tua */
+    --bg:#0d1b2a;            /* latar belakang kebiruan gelap */
+    --card:#0f2536;
+    --text:#e9f5ff;
+    --muted:#a6c3d9;
+    --accent:#64b5f6;        /* badge & highlight */
+  }
+  
+  /* ===== base ===== */
+  *{ box-sizing:border-box }
+  html,body{ margin:0; font-family:Inter,system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text) }
+  a{ color:inherit; text-decoration:none }
+  .container{ max-width:1100px; margin:auto; padding:0 16px }
+  
+  /* ===== topbar ===== */
+  .topbar{ background:var(--green-dark); font-size:.9rem }
+  .topbar .container{ display:flex; justify-content:space-between; align-items:center; padding:8px 16px }
+  .topbar .live{ margin-left:12px; padding:2px 8px; border:1px solid #fff3; border-radius:999px; font-weight:600 }
+  
+  /* ===== header / nav ===== */
+  .header{
+    background:var(--green);
+    position:sticky; top:0;
+    z-index:1000;                      /* header selalu di atas konten */
+  }
+  .header .container{ display:flex; align-items:center; gap:16px; padding:10px 16px }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px }
+  .brand img{ height:58px }
+  
+  .nav{ margin-left:auto; position:relative; z-index:1200 }  /* nav di atas hero */
+  .menu{
+    list-style:none; display:flex; gap:18px; align-items:center;
+    margin:0; padding:0; z-index:1200;
+  }
+  .menu a{ padding:10px 6px; border-radius:6px }
+  .menu a.active, .menu a:hover{ background:#ffffff20 }
+  .hamburger{ display:none; background:none; border:none; font-size:1.25rem; color:#fff }
+  
+  .has-dropdown{ position:relative }
+  .dropdown{
+    display:none; position:absolute; top:42px; left:0;
+    background:var(--card); border:1px solid #ffffff1f; border-radius:8px;
+    min-width:220px; padding:8px; z-index:1300; pointer-events:auto;
+  }
+  .has-dropdown:hover .dropdown{ display:block }
+  .dropdown.show{ display:block }                 /* untuk tap di mobile via JS */
+  .dropdown li{ list-style:none }
+  .dropdown a{ display:block; padding:10px 12px }
+  
+  /* ===== ticker ===== */
+  .ticker{ background:#0b2030; border-top:1px solid #ffffff10; border-bottom:1px solid #ffffff10; position:relative; z-index:10 }
+  .ticker .label{ background:var(--accent); color:#001728; padding:6px 10px; border-radius:4px; margin-right:10px; font-weight:800 }
+  
+  /* ===== layout ===== */
+  .layout{ display:grid; grid-template-columns:2fr 1fr; gap:22px; margin:22px auto }
+  .grid-berita{ display:grid; grid-template-columns:2fr 1fr; grid-auto-rows:minmax(140px,auto); gap:16px }
+  .card-hero{ grid-row:span 2; position:relative; overflow:hidden; border-radius:14px; background:#103149 }
+  .card-hero img{ width:100%; height:100%; object-fit:cover; display:block; opacity:.88 }
+  .badge{ position:absolute; top:12px; left:12px; background:var(--accent); color:#001728; padding:4px 10px; border-radius:999px; font-weight:800; font-size:.8rem }
+  .card-hero .content{ position:absolute; bottom:0; left:0; right:0; padding:16px; background:linear-gradient(180deg,transparent,rgba(0,0,0,.7)) }
+  .card{ background:var(--card); border:1px solid #ffffff14; border-radius:12px; padding:14px }
+  .card .thumb{ width:100%; height:150px; object-fit:cover; border-radius:10px; margin-bottom:10px; opacity:.95 }
+  .card h3 a:hover{ text-decoration:underline }
+  .sidebar .card+.card{ margin-top:16px }
+  .table{ width:100%; border-collapse:collapse; font-size:.95rem }
+  .table th,.table td{ padding:8px; border-bottom:1px solid #ffffff14; color:var(--muted) }
+  .table th{ color:#d7efff; text-align:left }
+  
+  .sponsors .logos{ display:flex; gap:15px }
+  .sponsors img{ width:100px; height:50px; object-fit:cover; border-radius:8px; opacity:.9 }
+  
+  /* ===== footer ===== */
+  .footer{ margin-top:40px; background:#0b2030; border-top:1px solid #ffffff14 }
+  .footer .fgrid{ display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:18px; padding:24px 16px }
+  .footer .copy{ text-align:center; font-size:.9rem; color:var(--muted); padding:12px; border-top:1px solid #ffffff10 }
+  
+  /* ===== responsive ===== */
+  @media (max-width:900px){
+    .layout{ grid-template-columns:1fr }
+    .grid-berita{ grid-template-columns:1fr }
+    .dropdown{ position:static }  /* di dalam panel menu saat mobile */
+  }
+  @media (max-width:760px){
+    .menu{
+      display:none; flex-direction:column; align-items:stretch;
+      background:var(--card); position:absolute; right:0; top:44px;
+      padding:10px; border-radius:10px; border:1px solid #ffffff1f;
+      z-index:1300;                                  /* penting di mobile */
+    }
+    .menu.show{ display:flex }
+    .hamburger{ display:inline-block }
+  }
+  
+  /* ===== buttons & text utils ===== */
+  .btn{
+    display:inline-block; padding:8px 12px; border-radius:8px;
+    border:1px solid #ffffff33; text-decoration:none;
+    transition:all .15s ease; font-weight:600
+  }
+  .btn:hover{ background:#ffffff20 }
+  .btn-small{ font-size:.9rem; padding:6px 10px }
+  .excerpt{ color:var(--muted); margin:6px 0 10px; line-height:1.5 }
+  
+  /* ===== HERO: PSTI JATIM ===== */
+  .hero-masthead{
+    position:relative; height:100vh; border-bottom:1px solid #ffffff12; overflow:hidden; z-index:1;
+  }
+  .hero-masthead .hero-bg{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.7) 100%),
+      url('assets/hero-musprov.jpg') center center / cover no-repeat;
+    filter:saturate(.95) brightness(.9);
+    will-change:background-position;
+    pointer-events:none;                      /* biar tidak “nangkep” klik */
+  }
+  .hero-inner{
+    position:relative; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:min(6vw, 48px);
+  }
+  
+  /* ===== animasi ===== */
+  .fade-in{ opacity:0; transform:translateY(12px) }
+  .fade-in.is-visible{ animation:fadeUp .7s ease-out forwards }
+  @keyframes fadeUp{ to{ opacity:1; transform:translateY(0) } }
+  
+  /* reveal on scroll */
+  .reveal{ opacity:0; transform:translateY(14px); filter:blur(2px);
+    transition:opacity .6s ease, transform .6s ease, filter .6s ease; will-change:opacity,transform,filter }
+  .reveal.show{ opacity:1; transform:none; filter:none }
+  .reveal .card, .reveal .card-hero{ opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s ease }
+  .reveal.show .card, .reveal.show .card-hero{ opacity:1; transform:none }
+  .reveal.show .card:nth-child(1){ transition-delay:.05s }
+  .reveal.show .card:nth-child(2){ transition-delay:.12s }
+  .reveal.show .card:nth-child(3){ transition-delay:.18s }
+  
+  /* ===== (opsional) efek teks api – masih disertakan kalau dibutuhkan ===== */
+  .fire-text{
+    font-weight:800; text-transform:uppercase;
+    background:linear-gradient(45deg,#ff0,#ff8000,#ff0,#ff8000,#ff0);
+    background-size:400% 400%;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    animation:fireGradient 2s infinite linear, flicker 1.5s infinite alternate;
+  }
+  @keyframes fireGradient{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  @keyframes flicker{
+    0%{ transform:translateY(0) rotate(0); filter:brightness(1) }
+    20%{ transform:translateY(-1px) rotate(-.5deg); filter:brightness(1.2) }
+    40%{ transform:translateY(1px) rotate(.5deg);  filter:brightness(.9) }
+    60%{ transform:translateY(-1px) rotate(-.3deg); filter:brightness(1.1) }
+    80%{ transform:translateY(1px) rotate(.3deg);  filter:brightness(1) }
+    100%{transform:translateY(0) rotate(0);       filter:brightness(1.2) }
+  }
+  
+  /* ===== grid kartu pengurus (publik) ===== */
+  .cards-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+    gap:16px;
+  }
+  
+  /* ===== kartu profil (detail) ===== */
+  .profile-card{
+    display:grid; grid-template-columns:240px 1fr; gap:18px;
+    background:var(--card); border:1px solid #ffffff14; border-radius:14px; padding:16px;
+  }
+  .profile-card .mt{ margin-top:14px }
+  .bullet{ padding-left:18px; color:var(--muted) }
+  .bullet li{ margin:.2rem 0 }
+  @media (max-width:720px){ .profile-card{ grid-template-columns:1fr } }
+  
+  /* === HOTFIX dropdown tidak bisa diklik === */
+.header{
+    position: sticky;
+    top: 0;
+    z-index: 2147483000;   /* sangat tinggi */
+    isolation: isolate;    /* bikin stacking context baru di atas semuanya */
+  }
+  .header, .header .container, .nav{ overflow: visible !important; }
+  
+  .nav, .menu, .has-dropdown, .header .dropdown{
+    position: relative;
+    z-index: 2147483600 !important;
+  }
+  
+  .header .dropdown{
+    display: none;
+    position: absolute;
+    top: 42px; left: 0;
+    background: var(--card);
+    border: 1px solid #ffffff1f;
+    border-radius: 8px;
+    min-width: 220px;
+    padding: 8px;
+  }
+  
+  .has-dropdown:hover > .dropdown{ display: block; }
+  .dropdown.show{ display:block; } /* untuk mobile toggle */
+  
+  .hero-masthead{ position: relative; z-index: 1 !important; }
+  .hero-masthead .hero-bg{ pointer-events: none !important; } /* jangan ambil klik */
+  .ticker{ position: relative; z-index: 50 !important; }
+  
+  /* === NAV & DROPDOWN FIX === */
+.header{
+    position: sticky;
+    top: 0;
+    z-index: 1000;        /* header selalu di atas konten */
+    isolation: isolate;   /* bikin stacking context baru supaya rapi */
+  }
+  .nav, .menu, .has-dropdown{ position: relative; z-index: 1100; }
+  .menu{ overflow: visible; }                 /* jangan motong dropdown */
+  .header .dropdown{
+    display: none;
+    position: absolute;
+    top: 100%;             /* nempel di bawah item menu */
+    left: 0;
+    background: var(--card);
+    border: 1px solid #ffffff1f;
+    border-radius: 8px;
+    min-width: 220px;
+    padding: 8px;
+    z-index: 1200;         /* di atas hero & ticker */
+  }
+  .has-dropdown:hover > .dropdown{ display: block; }
+  .header .dropdown.show{ display:block; }    /* dipakai saat mobile (JS) */
+  
+  /* === TICKER YANG KAMU PAKAI === */
+  .hero-ticker{ background:#0b2030; border-top:1px solid #ffffff10; border-bottom:1px solid #ffffff10; position:relative; z-index: 10; }
+  .hero-ticker .container{ padding:8px 16px; }
+  
+  /* === HERO background tidak ambil klik === */
+  .hero-masthead{ position: relative; z-index: 1; }
+  .hero-masthead .hero-bg{ pointer-events: none; }  /* penting */
+  
+  /* === Responsive: menu hamburger === */
+  @media (max-width:760px){
+    .menu{
+      display:none; flex-direction:column; align-items:stretch;
+      background:var(--card); position:absolute; right:0; top:44px;
+      padding:10px; border-radius:10px; border:1px solid #ffffff1f;
+      z-index:1300;
+    }
+    .menu.show{ display:flex; }
+    .header .dropdown{ position:static; top:auto; left:auto; margin-top:6px; }
+  }
+  
+  .logo-wrapper {
+  display: flex;
+  justify-content: center; /* posisi tengah otomatis */
+}
+

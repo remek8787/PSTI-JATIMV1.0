@@ -1,0 +1,49 @@
+[
+    {
+        "id": "3A7429FE",
+        "created_at": "2025-08-14 12:14:32",
+        "nama": "Muhammad",
+        "jk": "Laki-laki",
+        "ttl": "Malang, 07 Agustus 1980",
+        "usia": "45",
+        "tinggi": "165",
+        "berat": "55",
+        "alamat": "Dusun Krajan RT 013 RW 002 Desa Rejoyoso Kec. Bantur Kab. Malang Jawa Timur",
+        "pendidikan": "SMA",
+        "program_studi": "IPS",
+        "sekolah": "MAN Khairuddin Gondanglegi",
+        "cabor": "Sepak Takraw",
+        "telepon": "+6285225149935",
+        "lisensi": "019/E.001/PB.PSTI/V/2024",
+        "sertifikat": [
+            "Sertifikat Kompetensi - Pelatih Sepak Takraw Nasional Tingkat I",
+            "Sertifikat Pelatihan bersama Dispora Kabupaten Malang"
+        ],
+        "tahun_sertifikat": [
+            "2024",
+            "2024"
+        ],
+        "pengalaman": [
+            "Pelatih PSTI Kabupaten Malang",
+            "Pelatih Yayasan Golden Sepak Takraw Kabupaten Malang"
+        ],
+        "tahun_pengalaman": [
+            "2025",
+            "2025"
+        ],
+        "prestasi": [
+            "Juara 1 Piala Gala Desa Kemenpora RI ",
+            "Juara 2 Kejurda Jawa Timur ",
+            "Juara 3 Piala Bupati Malang",
+            "Juara 3 Porprov ke IX Jawa Timur"
+        ],
+        "tahun_prestasi": [
+            "2018",
+            "2017",
+            "2025",
+            "2025"
+        ],
+        "foto": "uploads/pelatih/pl_3A7429FE_1755342909.jpg",
+        "updated_at": "2025-08-16 18:15:09"
+    }
+]

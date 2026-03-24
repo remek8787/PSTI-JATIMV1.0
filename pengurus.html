@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pengurus — PSTI Jatim (Grid/Table + Modal)</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root{ --radius:14px }
+    .grid-pengurus{ display:grid; gap:16px; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); }
+    .card-pengurus{ background:var(--card); border:1px solid #ffffff14; border-radius:var(--radius); overflow:hidden }
+    .card-pengurus img{ width:100%; height:160px; object-fit:cover; display:block; opacity:.98 }
+    .card-pengurus .body{ padding:12px 14px }
+    .muted-sm{ color:var(--muted); font-size:.9rem }
+    .searchbar{ width:100%; max-width:520px; background:#0b2030; border:1px solid #ffffff1a; color:var(--text); border-radius:10px; padding:10px 12px; outline:none }
+    /* table */
+    .table-wrap{ overflow:auto; border:1px solid #ffffff14; border-radius:var(--radius); }
+    table{ width:100%; border-collapse:separate; border-spacing:0 }
+    thead th{ position:sticky; top:0; background:#0f2639; color:#e7f0f7; text-align:left; font-weight:600; font-size:.9rem; padding:10px 12px; border-bottom:1px solid #ffffff1a }
+    tbody td{ padding:12px; border-bottom:1px solid #ffffff0d }
+    tr:hover{ background:#0b20302a }
+    .avatar{ width:44px; height:44px; border-radius:8px; object-fit:cover; background:#173248 }
+    /* pills */
+    .seg{ display:flex; gap:8px; background:#0b2030; border:1px solid #ffffff1a; padding:4px; border-radius:999px }
+    .seg button{ border:0; background:transparent; color:var(--muted); padding:8px 12px; border-radius:999px; cursor:pointer }
+    .seg button.active{ background:#1f4061; color:#fff }
+    /* modal */
+    .modal-backdrop{ position:fixed; inset:0; background:#0009; display:none; align-items:center; justify-content:center; padding:20px; z-index:50 }
+    .modal{ width:min(820px, 100%); background:#0f2639; border:1px solid #ffffff1a; border-radius:var(--radius); box-shadow:0 20px 60px #000; overflow:hidden }
+    .modal header{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #ffffff1a }
+    .modal .body{ padding:16px }
+    .modal .grid{ display:grid; grid-template-columns:240px 1fr; gap:16px }
+    .chip{ display:inline-block; font-size:.85rem; padding:4px 8px; border-radius:999px; border:1px solid #ffffff1a; color:#cfe3f3 }
+    @media (max-width:720px){ .modal .grid{ grid-template-columns:1fr } }
+
+    /* kategori header */
+    .cat-header{ margin:18px 0 10px; font-weight:800; font-size:1.15rem; color:#e7f0f7 }
+    .cat-row td{ background:#0f2639; color:#cfe3f3; font-weight:600; border-bottom:1px solid #ffffff1a }
+    /* kecilkan select agar selaras */
+    .selectbar{ background:#0b2030; border:1px solid #ffffff1a; color:var(--text); border-radius:10px; padding:10px 12px; outline:none }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR (include dari navbar.html) -->
+  <div id="navbar"></div>
+
+  <main class="container" style="max-width:1100px;margin:22px auto">
+    <h1 style="margin:12px 0">Pengurus PSTI Jawa Timur</h1>
+
+    <!-- controls -->
+    <div style="display:flex;gap:10px;align-items:center;margin:12px 0 18px; flex-wrap:wrap">
+      <button id="btnBack" class="btn btn-small btn-ghost" type="button">← Kembali</button>
+      <input id="q" class="searchbar" placeholder="Cari nama / jabatan / kategori" style="flex:1" />
+      <!-- filter kategori -->
+      <select id="filterKat" class="selectbar" style="width:auto;min-width:220px">
+        <option value="">Semua Kategori</option>
+      </select>
+      <div class="seg" role="tablist" aria-label="Tampilan">
+        <button id="btnGrid" aria-selected="false">Grid</button>
+        <button id="btnTable" class="active" aria-selected="true">Table</button>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <section id="viewGrid" style="display:none"></section>
+
+    <!-- TABLE -->
+    <section id="viewTable">
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th style="width:64px">Foto</th>
+              <th>Nama</th>
+              <th>Jabatan</th>
+              <th style="width:140px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div id="msg" class="muted" style="margin-top:10px"></div>
+  </main>
+
+  <!-- Modal Detail -->
+  <div id="md" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
+      <header>
+        <strong id="mdTitle">Detail Pengurus</strong>
+        <button id="mdClose" class="btn btn-small btn-ghost" aria-label="Tutup">✕</button>
+      </header>
+      <div class="body">
+        <div class="grid">
+          <img id="mdFoto" class="avatar" style="width:100%;height:220px;border-radius:12px;object-fit:cover" alt="Foto">
+          <div>
+            <h3 id="mdNama" style="margin:0 0 6px;font-weight:800">-</h3>
+            <div>
+              <span id="mdKategori" class="chip" style="margin-right:6px;display:none"></span>
+              <span id="mdJabatan" class="chip" style="margin-bottom:8px"></span>
+            </div>
+            <div id="mdTelepon" class="muted-sm"></div>
+            <div id="mdAlamat" class="muted-sm"></div>
+
+            <h4 style="margin:14px 0 6px">Biografi</h4>
+            <p id="mdBio" class="muted-sm" style="white-space:pre-line">-</p>
+
+            <h4 style="margin:14px 0 6px">Riwayat Pendidikan</h4>
+            <ul id="mdPendidikan" class="muted-sm" style="padding-left:18px;list-style:disc"></ul>
+
+            <h4 style="margin:14px 0 6px">Sertifikat</h4>
+            <ul id="mdSertifikat" class="muted-sm" style="padding-left:18px;list-style:disc"></ul>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <a id="mdOpenPage" class="btn" target="_blank" rel="noopener">Buka Halaman Detail</a>
+          <button id="mdClose2" class="btn btn-ghost">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS: navbar loader, interaksi navbar, dan logika halaman -->
+  <script>
+  // ==== Load NAVBAR dari file terpisah + inisialisasi interaksi ====
+  (function(){
+    const mount = document.getElementById('navbar');
+    if (!mount) return;
+
+    fetch('navbar.html')
+      .then(r => r.text())
+      .then(html => {
+        mount.innerHTML = html;
+
+        // Tandai link aktif ke 'Pengurus'
+        try {
+          const links = mount.querySelectorAll('a[href]');
+          links.forEach(a => {
+            if (a.getAttribute('href') === 'pengurus.html') a.classList.add('active');
+          });
+        } catch(e) {}
+
+        // Toggle menu & dropdown mobile (sesuai struktur navbar.html)
+        const btn  = mount.querySelector('#btnMenu');
+        const menu = mount.querySelector('#mainMenu');
+        if (btn && menu){
+          btn.addEventListener('click', () => {
+            const open = menu.classList.toggle('show');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          });
+
+          // Tutup setelah klik link
+          menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.remove('show')));
+
+          // Dropdown via tap (mobile)
+          menu.querySelectorAll('.has-dropdown > a').forEach(a => {
+            a.addEventListener('click', (e) => {
+              if (window.matchMedia('(max-width: 760px)').matches) {
+                e.preventDefault();
+                const drop = a.parentElement.querySelector('.dropdown');
+                if (drop) {
+                  drop.classList.toggle('show');
+                  a.setAttribute('aria-expanded', drop.classList.contains('show') ? 'true':'false');
+                }
+              }
+            });
+          });
+
+          // Bersihkan state saat balik ke desktop
+          window.addEventListener('resize', () => {
+            if (!window.matchMedia('(max-width: 760px)').matches) {
+              menu.classList.remove('show');
+              menu.querySelectorAll('.dropdown.show').forEach(d => d.classList.remove('show'));
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+      })
+      .catch(err => {
+        // Fallback kalau gagal fetch navbar.html
+        mount.innerHTML = '<header class="header"><div class="container"><a class="brand" href="index.html"><span>PSTI JATIM</span></a></div></header>';
+        console.error('Gagal memuat navbar:', err);
+      });
+  })();
+
+  // ==== Halaman Pengurus (fungsi pencarian, grid/table, modal detail) ====
+  (function(){
+    const qEl = document.getElementById('q');
+    const gridWrap = document.getElementById('viewGrid');
+    const tableTbody = document.querySelector('#tbl tbody');
+    const msg = document.getElementById('msg');
+
+    const seg = { grid: document.getElementById('btnGrid'), table: document.getElementById('btnTable') };
+    const views = { grid: document.getElementById('viewGrid'), table: document.getElementById('viewTable') };
+    const filterKat = document.getElementById('filterKat');
+
+    // modal refs
+    const md = document.getElementById('md');
+    const mdClose = document.getElementById('mdClose');
+    const mdClose2 = document.getElementById('mdClose2');
+    const mdOpenPage = document.getElementById('mdOpenPage');
+
+    const $ = id => document.getElementById(id);
+
+    // back button
+    document.getElementById('btnBack').addEventListener('click', ()=>{
+      if (history.length > 1) history.back();
+      else location.href = 'index.html';
+    });
+
+    const API = (location.protocol === 'file:')
+      ? 'http://localhost/psti-jatim/pengurus_api.php'
+      : 'pengurus_api.php';
+
+    let items = [];
+    let filtered = [];
+
+    // helper: konversi ke angka
+    const num = (x, d=999) => { x = parseInt(x,10); return Number.isFinite(x) ? x : d; };
+
+    // urut: kategori → nama kategori → urut dalam kategori → nama
+    function sortItems(list){
+      return list.slice().sort((a,b)=>{
+        const ak = num(a.kat_order), bk = num(b.kat_order);
+        if (ak!==bk) return ak-bk;
+        const ck = (a.kategori||'').localeCompare(b.kategori||'');
+        if (ck!==0) return ck;
+        const au = num(a.urut), bu = num(b.urut);
+        if (au!==bu) return au-bu;
+        return (a.nama||'').localeCompare(b.nama||'');
+      });
+    }
+
+    function card(it){
+      const div = document.createElement('div');
+      div.className = 'card-pengurus';
+      const foto = it.foto || 'assets/contoh.jpg';
+      div.innerHTML = `
+        <img src="${foto}" alt="">
+        <div class="body">
+          <div style="font-weight:800">${it.nama || '-'}</div>
+          <div class="muted-sm">${(it.kategori ? it.kategori + ' • ' : '') + (it.jabatan || '')}</div>
+          <a class="btn btn-small" style="margin-top:10px" data-id="${it.id}" data-act="detail">Detail</a>
+        </div>`;
+      return div;
+    }
+
+    function row(it){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><img src="${it.foto || 'assets/contoh.jpg'}" class="avatar" alt=""></td>
+        <td>${it.nama || '-'}</td>
+        <td>${(it.kategori ? it.kategori + ' • ' : '') + (it.jabatan || '')}</td>
+        <td>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-small" data-id="${it.id}" data-act="detail">Detail</button>
+            <a class="btn btn-small btn-ghost" href="pengurus-detail.html?id=${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Buka Halaman</a>
+          </div>
+        </td>`;
+      return tr;
+    }
+
+    function applyFilter(){
+      const s = (qEl.value||'').toLowerCase();
+      const k = filterKat.value;
+      filtered = items.filter(it=>{
+        const hit = [it.nama,it.jabatan,it.kategori].join(' ').toLowerCase().includes(s);
+        const ok  = !k || (it.kategori||'Lainnya') === k;
+        return hit && ok;
+      });
+      filtered = sortItems(filtered);
+    }
+
+    // GRID: kelompok per kategori
+    function renderGrid(){
+      gridWrap.innerHTML = '';
+      if (!filtered.length){ msg.textContent = 'Belum ada data pengurus atau tidak ada yang cocok.'; return; }
+      msg.textContent = '';
+
+      const groups = {};
+      filtered.forEach(it=>{
+        const key = it.kategori || 'Lainnya';
+        (groups[key] ||= []).push(it);
+      });
+
+      const cats = Object.keys(groups).sort((a,b)=>{
+        const A = num((groups[a][0]||{}).kat_order);
+        const B = num((groups[b][0]||{}).kat_order);
+        return (A-B) || a.localeCompare(b);
+      });
+
+      cats.forEach(name=>{
+        const h = document.createElement('h3');
+        h.className = 'cat-header';
+        h.textContent = `${name} (${groups[name].length})`;
+        gridWrap.appendChild(h);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid-pengurus';
+        sortItems(groups[name]).forEach(it=> grid.appendChild(card(it)));
+        gridWrap.appendChild(grid);
+      });
+    }
+
+    // TABLE: baris header kategori
+    function renderTable(){
+      tableTbody.innerHTML = '';
+      if (!filtered.length){ msg.textContent = 'Belum ada data pengurus atau tidak ada yang cocok.'; return; }
+      msg.textContent = '';
+
+      const groups = {};
+      filtered.forEach(it=>{
+        const key = it.kategori || 'Lainnya';
+        (groups[key] ||= []).push(it);
+      });
+
+      const cats = Object.keys(groups).sort((a,b)=>{
+        const A = num((groups[a][0]||{}).kat_order);
+        const B = num((groups[b][0]||{}).kat_order);
+        return (A-B) || a.localeCompare(b);
+      });
+
+      cats.forEach(name=>{
+        const sep = document.createElement('tr');
+        sep.className = 'cat-row';
+        sep.innerHTML = `<td colspan="4">${name} (${groups[name].length})</td>`;
+        tableTbody.appendChild(sep);
+
+        sortItems(groups[name]).forEach(it=> tableTbody.appendChild(row(it)));
+      });
+    }
+
+    function switchView(which){
+      const toGrid = (which === 'grid');
+      views.grid.style.display = toGrid ? '' : 'none';
+      views.table.style.display = toGrid ? 'none' : '';
+      seg.grid.classList.toggle('active', toGrid);
+      seg.table.classList.toggle('active', !toGrid);
+      (toGrid ? renderGrid : renderTable)();
+    }
+
+    seg.grid.addEventListener('click', ()=> switchView('grid'));
+    seg.table.addEventListener('click', ()=> switchView('table'));
+
+    qEl.addEventListener('input', ()=>{ applyFilter(); switchView(seg.grid.classList.contains('active') ? 'grid' : 'table'); });
+    filterKat.addEventListener('change', ()=>{ applyFilter(); switchView(seg.grid.classList.contains('active') ? 'grid' : 'table'); });
+
+    // delegate detail click (grid + table)
+    document.addEventListener('click', (e)=>{
+      const el = e.target.closest('[data-act="detail"]');
+      if(!el) return;
+      const id = el.getAttribute('data-id');
+      openDetail(id);
+    });
+
+    function listToUl(el, text){
+      el.innerHTML = '';
+      const lines = (text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      if (!lines.length){ el.innerHTML = '<li class="muted-sm">-</li>'; return; }
+      lines.forEach(s => { const li = document.createElement('li'); li.textContent = s; el.appendChild(li); });
+    }
+
+    async function openDetail(id){
+      try{
+        const r = await fetch(API+'?action=get&id='+encodeURIComponent(id));
+        const j = await r.json();
+        if(!j.ok) throw new Error(j.error||'Data tidak ditemukan');
+        const it = j.item;
+        $('mdFoto').src = it.foto || 'assets/contoh.jpg';
+        $('mdNama').textContent = it.nama || '-';
+        $('mdJabatan').textContent = it.jabatan || '';
+        if (it.kategori){ $('mdKategori').style.display='inline-block'; $('mdKategori').textContent = it.kategori; }
+        else { $('mdKategori').style.display='none'; }
+        $('mdTelepon').textContent = it.telepon ? ('📞 '+it.telepon) : '';
+        $('mdAlamat').textContent = it.alamat || '';
+        $('mdBio').textContent = (it.biografi || it.pengalaman || '-')
+        listToUl($('mdPendidikan'), it.pendidikan);
+        listToUl($('mdSertifikat'), it.sertifikat);
+        mdOpenPage.href = 'pengurus-detail.html?id=' + encodeURIComponent(id);
+        md.style.display = 'flex';
+        md.setAttribute('aria-hidden','false');
+      }catch(err){
+        msg.style.color = '#ffb3b3';
+        msg.textContent = 'Gagal memuat detail: ' + err.message;
+      }
+    }
+
+    function closeMd(){ md.style.display='none'; md.setAttribute('aria-hidden','true'); }
+    mdClose.addEventListener('click', closeMd);
+    mdClose2.addEventListener('click', closeMd);
+    md.addEventListener('click', (e)=>{ if(e.target === md) closeMd(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeMd(); });
+
+    // ====== INIT: ambil data, normalisasi kategori, isi dropdown ======
+    fetch(API+'?action=list')
+      .then(r => r.json())
+      .then(j => {
+        // fallback auto-kategori dari jabatan untuk data lama
+        const CAT_ORDER = ['Pelindung','Pembina','Penasehat','Ketua Umum','Wakil Ketua','Sekretaris','Bendahara','Bidang','Lainnya'];
+        const CAT_MAP = [
+          {rx:/pelindung/i, name:'Pelindung'},
+          {rx:/pembina/i,  name:'Pembina'},
+          {rx:/penasihat|penasehat/i, name:'Penasehat'},
+          {rx:/ketua\s*umum/i, name:'Ketua Umum'},
+          {rx:/wakil|wkl\.?\s*ketua/i, name:'Wakil Ketua'},
+          {rx:/sekretaris/i, name:'Sekretaris'},
+          {rx:/bendahara/i, name:'Bendahara'},
+          {rx:/bidang|koor(dinator)?/i, name:'Bidang'},
+        ];
+
+        items = (j.items||[]).map(it=>{
+          if(!it.kategori){
+            const hit = CAT_MAP.find(m=> m.rx.test(it.jabatan||''));
+            it.kategori = hit ? hit.name : 'Lainnya';
+          }
+          if(it.kat_order==null){
+            const idx = CAT_ORDER.indexOf(it.kategori);
+            it.kat_order = idx>=0 ? (idx+1) : 99;
+          }
+          if(it.urut==null) it.urut = 99;
+          return it;
+        });
+
+        // Build dropdown kategori unik (urut menurut kat_order)
+        const uniq = new Map();
+        items.forEach(it=>{
+          const name = it.kategori || 'Lainnya';
+          const ord = num(it.kat_order);
+          if(!uniq.has(name)) uniq.set(name, ord);
+          else uniq.set(name, Math.min(uniq.get(name), ord));
+        });
+        [...uniq.entries()]
+          .sort((a,b)=> a[1]-b[1] || a[0].localeCompare(b[0]))
+          .forEach(([name])=>{
+            const o = document.createElement('option');
+            o.value = name; o.textContent = name;
+            filterKat.appendChild(o);
+          });
+
+        applyFilter();
+        switchView('table');
+      })
+      .catch(err => {
+        console.error(err); msg.style.color = '#ffb3b3';
+        msg.textContent = 'Tidak bisa memuat data. Buka lewat http://localhost/psti-jatim/pengurus.html';
+      });
+  })();
+  </script>
+
+  <!-- <script defer src="app.js"></script> -->
+</body>
+</html>

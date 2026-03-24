@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard Admin — PSTI Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Header -->
+  <header class="bg-blue-600 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a class="flex items-center gap-2" href="index.html">
+        <img src="assets/logo.jpeg" alt="Logo PSTI Jatim" class="w-10 h-10 rounded-full">
+        <span class="font-bold text-lg">PSTI JATIM</span>
+      </a>
+      <div class="flex items-center gap-4">
+        <span class="text-sm">Login sebagai: <strong id="who">-</strong></span>
+        <button id="btnLogout" class="px-3 py-1 rounded bg-white text-blue-700 hover:bg-gray-200">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6">Dashboard Admin</h1>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Card -->
+      <a href="edit-pengurus.html" class="block bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition p-6 text-center">
+        <div class="text-5xl mb-4">👥</div>
+        <h2 class="text-lg font-semibold">Kelola Pengurus</h2>
+        <p class="text-gray-400 text-sm mt-1">Tambah, edit, dan hapus data pengurus</p>
+      </a>
+
+      <a href="edit-atlit.html" class="block bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition p-6 text-center">
+        <div class="text-5xl mb-4">🏅</div>
+        <h2 class="text-lg font-semibold">Kelola Atlet</h2>
+        <p class="text-gray-400 text-sm mt-1">Tambah, edit, dan hapus data atlet</p>
+      </a>
+
+      <a href="edit-pelatih.html" class="block bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition p-6 text-center">
+        <div class="text-5xl mb-4">🎯</div>
+        <h2 class="text-lg font-semibold">Kelola Pelatih</h2>
+        <p class="text-gray-400 text-sm mt-1">Tambah, edit, dan hapus data pelatih</p>
+      </a>
+      
+       <a href="edit-klub.html" class="block bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition p-6 text-center">
+        <div class="text-5xl mb-4">🎯</div>
+        <h2 class="text-lg font-semibold">Kelola klub</h2>
+        <p class="text-gray-400 text-sm mt-1">Tambah, edit, dan hapus data klub</p>
+      </a>
+    </div>
+  </main>
+
+<script>
+const AUTH = 'auth_pengurus.php';
+const $ = id => document.getElementById(id);
+
+// Cek login
+(async () => {
+  try{
+    const r = await fetch(AUTH+'?action=me', {credentials:'same-origin'});
+    const j = await r.json();
+    if (!j.admin) {
+      location.href = 'login_pengurus.html?next=' + encodeURIComponent('dashboard.html');
+      return;
+    }
+    $('who').textContent = j.user || 'Pengurus';
+  }catch(e){
+    location.href = 'login_pengurus.html?next=' + encodeURIComponent('dashboard.html');
+  }
+})();
+
+// Logout
+$('btnLogout').addEventListener('click', async ()=>{
+  try{ await fetch(AUTH+'?action=logout', {credentials:'same-origin'}); }catch(e){}
+  location.href='login_pengurus.html?next=' + encodeURIComponent('dashboard.html');
+});
+</script>
+</body>
+</html>
